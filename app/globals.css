@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #FCF8F3;
+  --bg-secondary: #F8F3ED;
+  --card: #FFFDFC;
+  --primary: #365A43;
+  --primary-hover: #2D4B37;
+  --gold: #C69C6D;
+  --gold-light: #E8CFAE;
+  --heading: #2E2925;
+  --body: #6F6258;
+  --muted: #9A8D82;
+  --border: #EFE5DA;
+  --pink: #F7D7DE;
+  --pink-light: #FCECEF;
+  --green-soft: #E8F2EA;
+  --background: #FCF8F3;
+  --foreground: #2E2925;
+  --font-cormorant: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-inter: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  color: var(--heading);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(247, 215, 222, 0.45), transparent 28rem),
+    radial-gradient(circle at 92% 44%, rgba(198, 156, 109, 0.12), transparent 34rem),
+    #FCF8F3;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 18px;
+  line-height: 1.9;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  color: #fffcfa;
+  background: #365A43;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.container-xl {
+  width: min(100% - 48px, 1440px);
+  margin-inline: auto;
+}
+
+/* ── Eyebrow label ───────────────────────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #B98A5A;
+}
+
+/* ── Section padding ─────────────────────────────────────────────────── */
+/* Top-only spacing: adjacent sections share one 80px gap, not 80 + 80. */
+.section-pad {
+  padding-top: 80px;
+}
+
+.section-pad-end {
+  padding-bottom: 80px;
+}
+
+@media (max-width: 768px) {
+  .section-pad {
+    padding-top: 56px;
+  }
+
+  .section-pad-end {
+    padding-bottom: 56px;
+  }
+}
+
+/* ── Glass card ──────────────────────────────────────────────────────── */
+.glass {
+  border: 1px solid #EFE5DA;
+  background: rgba(255, 253, 252, 0.82);
+  box-shadow: 0 10px 30px rgba(30, 20, 10, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+/* ── Button ripple ───────────────────────────────────────────────────── */
+.button-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-ripple::after {
+  content: "";
+  position: absolute;
+  inset: auto auto 50% 50%;
+  width: 0;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  transform: translate(-50%, 50%);
+  transition: width 460ms ease;
+}
+
+.button-ripple:hover::after {
+  width: 280%;
+}
+
+/* ── Floating petals ─────────────────────────────────────────────────── */
+.petal {
+  position: absolute;
+  width: 19px;
+  height: 12px;
+  border-radius: 100% 0 100% 0;
+  background: rgba(247, 215, 222, 0.95);
+  box-shadow: 0 0 2px rgba(247, 215, 222, 0.35);
+  filter: blur(0.15px);
+  animation: float-petal 16s linear infinite;
+  opacity: 0.68;
+}
+
+@keyframes float-petal {
+  0%   { transform: translate3d(0, -14vh, 0) rotate(0deg); }
+  100% { transform: translate3d(-100px, 110vh, 0) rotate(360deg); }
+}
+
+.services-petal {
+  width: 16px;
+  height: 11px;
+  border-radius: 100% 0 100% 0;
+  background: rgba(247, 215, 222, 0.92);
+  box-shadow: 0 0 2px rgba(247, 215, 222, 0.3);
+  filter: blur(0.15px);
+  opacity: 0.68;
+  animation: services-petal-drift 14s ease-in-out infinite;
+}
+
+@keyframes services-petal-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0.58; }
+  50%      { transform: translate3d(-12px, -18px, 0) rotate(18deg); opacity: 0.82; }
+}
+
+/* ── Botanical decorative line ───────────────────────────────────────── */
+.botanical-line {
+  background:
+    linear-gradient(135deg, transparent 44%, rgba(198, 156, 109, 0.22) 45%, rgba(198, 156, 109, 0.22) 46%, transparent 47%),
+    radial-gradient(circle at 18% 18%, rgba(247, 215, 222, 0.65) 0 7px, transparent 8px),
+    radial-gradient(circle at 82% 36%, rgba(247, 215, 222, 0.55) 0 5px, transparent 6px);
+}
+
+/* ── Scrollbar hide ──────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Shadow utilities ────────────────────────────────────────────────── */
+.shadow-sm-warm  { box-shadow: 0 6px 20px rgba(0,0,0,0.04); }
+.shadow-md-warm  { box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
+.shadow-lg-warm  { box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
+.shadow-hero-img { box-shadow: 0 40px 80px rgba(0,0,0,0.10); }
+
+@media (max-width: 768px) {
+  .container-xl {
+    width: min(100% - 28px, 1440px);
+  }
+}
