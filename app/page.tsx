@@ -5,7 +5,6 @@ import { FooterRightTree } from "@/components/decorations/FooterRightTree";
 import { Hero } from "@/components/hero/Hero";
 import { About } from "@/components/about/About";
 import { Services } from "@/components/services/Services";
-import { FamilyConstellation } from "@/components/family/FamilyConstellation";
 import { SmoothScroll } from "@/components/smooth-scroll";
 
 const Videos = dynamic(() => import("@/components/videos/Videos").then((m) => m.Videos), {
@@ -28,7 +27,6 @@ export default function Home() {
         <Hero />
         <About />
         <Services />
-        <FamilyConstellation />
         <div className="relative overflow-x-hidden">
           <Videos />
           <Booking />

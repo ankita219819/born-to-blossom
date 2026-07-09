@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { aboutStats } from "@/lib/content";
+import { aboutParagraphs, aboutQuote, aboutStats, aboutTitle } from "@/lib/content";
 import { fadeUp } from "@/lib/motion";
 import { PractitionerPortrait, PractitionerSplitLayout } from "@/components/ui/PractitionerPortrait";
 import { Section, SectionHeading } from "@/components/ui/Section";
@@ -17,23 +17,24 @@ export function About() {
           <div className="text-center md:text-left">
             <SectionHeading
               eyebrow="About me"
-              title="A Sanctuary for Healing, Growth & Awakening"
+              title={aboutTitle}
               className="mx-auto min-[768px]:mx-0"
             />
             <motion.blockquote
               {...fadeUp}
               className="mx-auto mt-6 max-w-3xl font-display text-[1.5rem] font-medium italic leading-[1.35] text-blossom-rose md:mt-8 md:text-[1.75rem] min-[1200px]:mx-0 min-[1200px]:text-[2rem]"
             >
-              “Every soul already carries the wisdom to heal. My role is simply to help you reconnect with it.”
+              “{aboutQuote}”
             </motion.blockquote>
-            <motion.p
-              {...fadeUp}
-              className="mx-auto mt-6 max-w-3xl text-[1rem] leading-[1.9] text-[#6F6258] md:mt-8 md:text-[1.0625rem] min-[1200px]:mx-0"
-            >
-              I am a psychiatrist and holistic healing practitioner dedicated to integrating modern psychology,
-              spiritual wisdom, emotional healing and energy practices into one compassionate journey. Each session
-              is held with presence, confidentiality and care.
-            </motion.p>
+            {aboutParagraphs.map((paragraph) => (
+              <motion.p
+                key={paragraph}
+                {...fadeUp}
+                className="mx-auto mt-6 max-w-3xl text-[1rem] leading-[1.9] text-[#6F6258] md:mt-8 md:text-[1.0625rem] min-[1200px]:mx-0"
+              >
+                {paragraph}
+              </motion.p>
+            ))}
             <motion.div
               {...fadeUp}
               className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-3 md:mt-10 md:gap-4 min-[1200px]:mx-0 min-[1200px]:max-w-none"
