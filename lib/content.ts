@@ -13,6 +13,7 @@ export const navItems = [
   "About",
   "Services",
   "Videos",
+  "Blog",
   "Testimonials",
   "Book Session",
   "Contact"
@@ -133,6 +134,7 @@ export const footerQuickLinks = [
   "About",
   "Services",
   "Videos",
+  "Blog",
   "Testimonials",
   "Book Session",
   "Contact"

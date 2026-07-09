@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ChevronRight, Instagram, Leaf, Mail, MapPin, Phone, Youtube } from "lucide-react";
 import { footerQuickLinks, footerServices } from "@/lib/content";
@@ -21,19 +22,21 @@ const SOCIAL_LINKS = [
   }
 ] as const;
 
+function quickLinkHref(item: string) {
+  if (item === "Blog") return "/blog";
+  if (item === "Home") return "/#home";
+  return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
+}
+
 function FooterColumn({ title, items }: { title: string; items: readonly string[] }) {
   return (
     <div>
       <h3 className="font-bold">{title}</h3>
       <div className="mt-4 grid gap-2.5 text-sm text-blossom-ink/65 md:mt-5 md:gap-3">
         {items.map((item) => (
-          <a
-            key={item}
-            href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
-            className="hover:text-blossom-green"
-          >
+          <Link key={item} href={quickLinkHref(item)} className="hover:text-blossom-green">
             {item}
-          </a>
+          </Link>
         ))}
       </div>
     </div>
@@ -131,13 +134,9 @@ export function Footer() {
             <FooterAccordion title="Quick Links">
               <div className="grid gap-2.5 text-sm text-blossom-ink/65">
                 {footerQuickLinks.map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
-                    className="hover:text-blossom-green"
-                  >
+                  <Link key={item} href={quickLinkHref(item)} className="hover:text-blossom-green">
                     {item}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </FooterAccordion>
@@ -165,7 +164,7 @@ export function Footer() {
                 Take the first step towards healing, clarity and inner peace.
               </p>
               <a
-                href="#book-session"
+                href="/#book-session"
                 className="button-ripple mt-4 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#365A43] text-[0.9375rem] font-semibold text-white shadow-[0_12px_28px_rgba(54,90,67,0.22)]"
               >
                 Book Your Session <Leaf className="h-4 w-4" />

@@ -100,10 +100,10 @@ export function Hero() {
               min-[1200px]:mt-10
             "
           >
-            <Button className="w-full sm:w-auto">
+            <Button href="#book-session" className="w-full sm:w-auto">
               Book Your Session <Leaf className="h-4 w-4" />
             </Button>
-            <Button variant="secondary" className="w-full sm:w-auto">
+            <Button href="#services" variant="secondary" className="w-full sm:w-auto">
               Explore Services <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
