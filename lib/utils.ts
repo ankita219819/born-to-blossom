@@ -9,33 +9,24 @@ export function cn(...inputs: ClassValue[]) {
 export type BookingDetails = {
   service: string;
   name: string;
-  email: string;
-  phone?: string;
+  phone: string;
+  email?: string;
+  age: string;
+  location: string;
+  birthday: string;
+  concern: string;
+  sessionMode: string;
+  medicalDisclaimer: string;
+  confidentiality: string;
   day: number;
   month: number;
   year: number;
-  time: string;
-  notes?: string;
 };
 
 const BOOKING_TIMEZONE = "Asia/Kolkata";
 
 function normalizeWhatsAppNumber(number: string) {
   return number.replace(/\D/g, "");
-}
-
-function parseTimeLabel(time: string) {
-  const match = time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return { hours: 9, minutes: 0 };
-
-  let hours = Number.parseInt(match[1], 10);
-  const minutes = Number.parseInt(match[2], 10);
-  const period = match[3].toUpperCase();
-
-  if (period === "PM" && hours !== 12) hours += 12;
-  if (period === "AM" && hours === 12) hours = 0;
-
-  return { hours, minutes };
 }
 
 function getServiceDurationMinutes(service: string) {
@@ -51,68 +42,87 @@ function formatBookingDateLabel({ day, month, year }: Pick<BookingDetails, "day"
   });
 }
 
-function formatCalendarStamp(year: number, month: number, day: number, hours: number, minutes: number) {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${year}${pad(month + 1)}${pad(day)}T${pad(hours)}${pad(minutes)}00`;
+function formatBirthdayLabel(birthday: string) {
+  if (!birthday) return birthday;
+  const date = new Date(`${birthday}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return birthday;
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric"
+  });
 }
 
-function getBookingWindow(details: BookingDetails) {
-  const { hours, minutes } = parseTimeLabel(details.time);
-  const duration = getServiceDurationMinutes(details.service);
-  const endMinutes = hours * 60 + minutes + duration;
+function pad(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatAllDayStamp(year: number, month: number, day: number) {
+  return `${year}${pad(month + 1)}${pad(day)}`;
+}
+
+/** Google Calendar all-day events use an exclusive end date. */
+function getAllDayBookingWindow(details: BookingDetails) {
+  const startDate = new Date(details.year, details.month, details.day);
+  const endDate = new Date(details.year, details.month, details.day + 1);
 
   return {
-    start: formatCalendarStamp(details.year, details.month, details.day, hours, minutes),
-    end: formatCalendarStamp(
-      details.year,
-      details.month,
-      details.day,
-      Math.floor(endMinutes / 60) % 24,
-      endMinutes % 60
-    )
+    start: formatAllDayStamp(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()),
+    end: formatAllDayStamp(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
   };
 }
 
-function buildBookingDescription(details: BookingDetails) {
+function buildBookingLines(details: BookingDetails, style: "plain" | "whatsapp") {
+  const bold = (label: string, value: string) =>
+    style === "whatsapp" ? `*${label}:* ${value}` : `${label}: ${value}`;
+
   const lines = [
-    `Service: ${details.service}`,
-    `Name: ${details.name}`,
-    `Email: ${details.email}`
+    bold("Service", details.service),
+    bold("Name", details.name),
+    bold("Phone", details.phone)
   ];
 
-  if (details.phone?.trim()) lines.push(`Phone: ${details.phone.trim()}`);
-  lines.push(`Date: ${formatBookingDateLabel(details)}`, `Time: ${details.time}`);
-  if (details.notes?.trim()) lines.push(`Notes: ${details.notes.trim()}`);
+  if (details.email?.trim()) lines.push(bold("Email", details.email.trim()));
+  lines.push(
+    bold("Age", details.age),
+    bold("Location", details.location),
+    bold("Birthday", formatBirthdayLabel(details.birthday)),
+    bold("Preferred session date", formatBookingDateLabel(details)),
+    bold("Session mode", details.sessionMode),
+    bold("Concern / reason", details.concern),
+    bold("Medical disclaimer", details.medicalDisclaimer),
+    bold("Confidentiality", details.confidentiality),
+    bold("Duration", `${getServiceDurationMinutes(details.service)} mins (time to be confirmed)`)
+  );
 
-  return lines.join("\n");
+  return lines;
+}
+
+function buildBookingDescription(details: BookingDetails) {
+  return buildBookingLines(details, "plain").join("\n");
 }
 
 export function buildWhatsAppBookingUrl(details: BookingDetails) {
-  const date = formatBookingDateLabel(details);
   const lines = [
     "Hello! I would like to book a healing session.",
     "",
-    `*Service:* ${details.service}`,
-    `*Name:* ${details.name}`,
-    `*Email:* ${details.email}`
+    ...buildBookingLines(details, "whatsapp")
   ];
-
-  if (details.phone?.trim()) lines.push(`*Phone:* ${details.phone.trim()}`);
-  lines.push(`*Date:* ${date}`, `*Time:* ${details.time}`);
-  if (details.notes?.trim()) lines.push(`*Notes:* ${details.notes.trim()}`);
 
   return `https://wa.me/${normalizeWhatsAppNumber(contactInfo.whatsapp)}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
 export function buildGoogleCalendarUrl(details: BookingDetails) {
-  const { start, end } = getBookingWindow(details);
+  const { start, end } = getAllDayBookingWindow(details);
+  const guests = [contactInfo.calendarInviteTo, contactInfo.calendarInviteCc].join(",");
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: `${details.service} — Born To Blossom`,
     dates: `${start}/${end}`,
     details: buildBookingDescription(details),
     location: contactInfo.location,
-    ctz: BOOKING_TIMEZONE
+    ctz: BOOKING_TIMEZONE,
+    add: guests
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -127,20 +137,24 @@ function formatIcsUtcStamp(date: Date) {
 }
 
 export function downloadBookingIcs(details: BookingDetails) {
-  const { start, end } = getBookingWindow(details);
+  const { start, end } = getAllDayBookingWindow(details);
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//Born To Blossom//Booking//EN",
     "CALSCALE:GREGORIAN",
+    "METHOD:REQUEST",
     "BEGIN:VEVENT",
     `UID:${Date.now()}@borntoblossom.com`,
     `DTSTAMP:${formatIcsUtcStamp(new Date())}`,
-    `DTSTART;TZID=${BOOKING_TIMEZONE}:${start}`,
-    `DTEND;TZID=${BOOKING_TIMEZONE}:${end}`,
+    `DTSTART;VALUE=DATE:${start}`,
+    `DTEND;VALUE=DATE:${end}`,
     `SUMMARY:${escapeIcsValue(`${details.service} — Born To Blossom`)}`,
     `DESCRIPTION:${escapeIcsValue(buildBookingDescription(details))}`,
     `LOCATION:${escapeIcsValue(contactInfo.location)}`,
+    `ORGANIZER;CN=Born To Blossom:mailto:${contactInfo.calendarInviteTo}`,
+    `ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=Sonia Verma:mailto:${contactInfo.calendarInviteTo}`,
+    `ATTENDEE;ROLE=OPT-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=Born To Blossom:mailto:${contactInfo.calendarInviteCc}`,
     "END:VEVENT",
     "END:VCALENDAR"
   ].join("\r\n");

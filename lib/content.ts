@@ -109,7 +109,9 @@ export const contactInfo = {
   phone: "+91 75068 28722",
   whatsapp: "+91 75068 28722",
   email: "hello@borntoblossom.com",
-  location: "Gurgaon, Haryana, India"
+  location: "Gurgaon, Haryana, India",
+  calendarInviteTo: "sonia.verma14@gmail.com",
+  calendarInviteCc: "sonia@borntoblossom.in"
 } as const;
 
 export const bookingBenefits = [
@@ -117,16 +119,6 @@ export const bookingBenefits = [
   "Safe & Confidential",
   "Holistic & Integrative",
   "Compassionate Support"
-] as const;
-
-export const bookingTimes = [
-  "09:00 AM",
-  "10:30 AM",
-  "12:00 PM",
-  "02:00 PM",
-  "03:30 PM",
-  "05:00 PM",
-  "06:30 PM"
 ] as const;
 
 export const footerQuickLinks = [
