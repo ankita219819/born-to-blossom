@@ -99,11 +99,36 @@ export const instagramReels = [
   { shortcode: "DaDlx-yy4CM", title: "Inner Child", duration: "0:28" }
 ] as const;
 
-export const testimonials = [
-  "I felt deeply seen and safe. The session helped me understand a family pattern I had carried for years.",
-  "The blend of clinical insight and spiritual steadiness was unlike anything I had experienced before.",
-  "A calm, beautiful space where practical healing and inner wisdom meet with so much compassion."
-] as const;
+export type TestimonialItem = {
+  quote: string;
+  name: string;
+  role: string;
+  rating: number;
+};
+
+export const testimonials: TestimonialItem[] = [
+  {
+    quote:
+      "I felt deeply seen and safe. The session helped me understand a family pattern I had carried for years.",
+    name: "Priya Sharma",
+    role: "Private Client",
+    rating: 5
+  },
+  {
+    quote:
+      "The blend of clinical insight and spiritual steadiness was unlike anything I had experienced before.",
+    name: "Ananya Mehta",
+    role: "Private Client",
+    rating: 5
+  },
+  {
+    quote:
+      "A calm, beautiful space where practical healing and inner wisdom meet with so much compassion.",
+    name: "Rhea Kapoor",
+    role: "Private Client",
+    rating: 4
+  }
+];
 
 export const contactInfo = {
   phone: "+91 75068 28722",
