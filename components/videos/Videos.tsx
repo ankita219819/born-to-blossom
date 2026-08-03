@@ -126,8 +126,13 @@ function CarouselNav({
 }
 
 export function Videos() {
-  const [youtubeRef, youtubeApi] = useEmblaCarousel({ align: "center", dragFree: true });
-  const [reelRef, reelApi] = useEmblaCarousel({ align: "center", dragFree: true });
+  const carouselOptions = {
+    align: "start" as const,
+    containScroll: "trimSnaps" as const,
+    dragFree: true
+  };
+  const [youtubeRef, youtubeApi] = useEmblaCarousel(carouselOptions);
+  const [reelRef, reelApi] = useEmblaCarousel(carouselOptions);
   const [activeYoutube, setActiveYoutube] = useState<string | null>(null);
   const [activeReel, setActiveReel] = useState<string | null>(null);
   const scrollPrev = useCallback((api: ReturnType<typeof useEmblaCarousel>[1]) => api?.scrollPrev(), []);
@@ -149,7 +154,7 @@ export function Videos() {
           </div>
 
           <div ref={youtubeRef} className="mt-4 overflow-hidden md:mt-5 xl:hidden">
-            <div className="flex justify-center gap-4 md:gap-5">
+            <div className="flex gap-4 md:gap-5">
               {youtubeVideos.map((video) => (
                 <VideoCard
                   key={video.videoId}
@@ -189,7 +194,7 @@ export function Videos() {
           </div>
 
           <div ref={reelRef} className="relative z-10 mt-4 overflow-hidden md:mt-5 xl:hidden">
-            <div className="flex justify-center gap-4 md:gap-5">
+            <div className="flex gap-4 md:gap-5">
               {instagramReels.map((reel) => (
                 <VideoCard key={reel.shortcode} title={reel.title} duration={reel.duration} onPlay={() => setActiveReel(reel.shortcode)} />
               ))}

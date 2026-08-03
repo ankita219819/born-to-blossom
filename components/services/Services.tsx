@@ -86,7 +86,11 @@ function ServiceCard({
 }
 
 export function Services() {
-  const [carouselRef, carouselApi] = useEmblaCarousel({ align: "center", dragFree: true });
+  const [carouselRef, carouselApi] = useEmblaCarousel({
+    align: "start",
+    containScroll: "trimSnaps",
+    dragFree: true
+  });
   const scrollPrev = useCallback((api: ReturnType<typeof useEmblaCarousel>[1]) => api?.scrollPrev(), []);
   const scrollNext = useCallback((api: ReturnType<typeof useEmblaCarousel>[1]) => api?.scrollNext(), []);
 
@@ -101,7 +105,7 @@ export function Services() {
         </div>
 
         <div ref={carouselRef} className="mt-3 overflow-hidden md:hidden">
-          <div className="flex justify-center gap-4">
+          <div className="flex gap-4">
             {services.map((service, index) => (
               <ServiceCard
                 key={service.title}
