@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, UserRound } from "lucide-react";
 import { BlogPortableText } from "@/components/blog/BlogPortableText";
@@ -8,10 +7,12 @@ import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { Container } from "@/components/layout/Container";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import { postBySlugQuery, postSlugsQuery, recentPostsQuery } from "@/sanity/lib/queries";
 import { formatPostDate, type BlogPost, type BlogPostListItem } from "@/sanity/lib/types";
+import { buildPageMetadata, DEFAULT_OG_IMAGE } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -47,12 +48,26 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post) return { title: "Post not found | Born To Blossom" };
+  if (!post) {
+    return buildPageMetadata({
+      title: "Post not found",
+      description: "This blog post could not be found.",
+      path: `/blog/${slug}`,
+      noIndex: true
+    });
+  }
 
-  return {
-    title: `${post.title} | Born To Blossom`,
-    description: post.excerpt || "A reflection from Born To Blossom."
-  };
+  const image = post.mainImage
+    ? urlFor(post.mainImage).width(1200).height(630).url()
+    : DEFAULT_OG_IMAGE;
+
+  return buildPageMetadata({
+    title: post.title,
+    description: post.excerpt || "A reflection from Born to Blossom Soul Awakening.",
+    path: `/blog/${post.slug}`,
+    image,
+    keywords: [post.title, post.category || "", "Born to Blossom blog"].filter(Boolean)
+  });
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -68,21 +83,17 @@ export default async function BlogPostPage({ params }: PageProps) {
       <Navbar />
       <main className="pb-16 pt-6 md:pb-24 md:pt-28">
         <Container>
-          <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-12">
-            <article className="min-w-0">
-              <nav className="text-[0.8rem] text-[#9A8D82]" aria-label="Breadcrumb">
-                <Link href="/" className="hover:text-[#365A43]">
-                  Home
-                </Link>
-                <span className="mx-2">›</span>
-                <Link href="/blog" className="hover:text-[#365A43]">
-                  Blog
-                </Link>
-                <span className="mx-2">›</span>
-                <span className="text-[#6F6258]">{post.title}</span>
-              </nav>
+          <Breadcrumbs
+            items={[
+              { name: "Home", path: "/" },
+              { name: "Blog", path: "/blog" },
+              { name: post.title, path: `/blog/${post.slug}` }
+            ]}
+          />
 
-              <h1 className="mt-5 font-display text-[2.2rem] font-medium leading-[1.15] tracking-[-0.03em] text-[#2E2925] md:text-[3rem]">
+          <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-12">
+            <article className="min-w-0">
+              <h1 className="font-display text-[2.2rem] font-medium leading-[1.15] tracking-[-0.03em] text-[#2E2925] md:text-[3rem]">
                 {post.title}
               </h1>
 
@@ -122,7 +133,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               </div>
             </article>
 
-            <div className="xl:pt-10">
+            <div className="xl:pt-2">
               <BlogSidebar posts={recentPosts} />
             </div>
           </div>

@@ -1,90 +1,58 @@
 import {
   Flower2,
-  HeartHandshake,
+  Globe2,
   ShieldCheck,
-  Sparkles,
-  Sprout,
-  Star,
-  type LucideIcon
+  Sparkles
 } from "lucide-react";
 
 export const navItems = [
   "Home",
   "About",
   "Services",
-  "Videos",
+  "Corporate",
+  "Workshops",
   "Blog",
-  "Testimonials",
-  "Book Session",
-  "Contact"
+  "FAQ",
+  "Book"
 ] as const;
 
-export type ServiceItem = {
-  title: string;
-  copy: string;
-  time: string;
-  Icon: LucideIcon;
-  image?: string;
-  imageAlt?: string;
-};
-
-export const services: ServiceItem[] = [
-  {
-    title: "Family Constellation Therapy",
-    copy: "Heal generational patterns and restore belonging.",
-    time: "60 mins",
-    Icon: Sprout,
-    image: "/images/family-constellation.png",
-    imageAlt: "Family standing together on a hilltop connected by golden light at sunrise"
-  },
-  {
-    title: "Spiritual Healing",
-    copy: "Restore inner balance through intentional ceremony.",
-    time: "45 mins",
-    Icon: Sparkles,
-    image: "/images/spiritual_healing.png",
-    imageAlt: "Silhouette meditating with glowing chakras overlooking a serene mountain sunrise"
-  },
-  {
-    title: "Tarot Reading",
-    copy: "Gain clarity and insight through intuitive guidance.",
-    time: "45 mins",
-    Icon: Star,
-    image: "/images/tarot-reading.png",
-    imageAlt: "Hands holding tarot cards beside a lit candle at golden hour"
-  },
-  {
-    title: "Meditation Guidance",
-    copy: "Mindfulness practices to cultivate peace and awareness.",
-    time: "30 mins",
-    Icon: Flower2,
-    image: "/images/meditation.png",
-    imageAlt: "Woman meditating on a hilltop beneath cherry blossoms at sunrise"
-  }
-];
-
 export const heroFeatures = [
-  ["Compassionate Care", HeartHandshake],
-  ["Holistic Healing", Flower2],
-  ["Personalized Guidance", Sparkles],
+  ["20+ Modalities", Sparkles],
+  ["Ancient Wisdom", Flower2],
+  ["In-Person & Online", Globe2],
   ["Safe & Confidential", ShieldCheck]
 ] as const;
 
-export const aboutTitle = "Founder & Practitioner, Born to Blossom Soul Awakening";
+export const aboutTitle = "A Soul Who Has Walked This Path Before You";
 
 export const aboutQuote =
-  "I am not just a healer. I am a transmitter of divine Light Codes. Every session is a sacred transmission. Every client is a divine appointment.";
+  "Healing is not about changing who you are. It is about remembering.";
 
 export const aboutParagraphs = [
-  "I'm Sonia Verma Bhattacharyya, founder and practitioner of Born to Blossom Soul Awakening in Gurgaon, India. Light Codes are structured packets of divine intelligence — precision transmissions through light, sound, symbol, colour, and vibrational frequency — that heal, clear, activate, and transform the energy field.",
-  "In session, I draw on ThetaHealing, Reiki, Family Constellation, Sound Healing, Somatic Healing, EFT, Hunkaara, Hleem, and sacred Shakta practice to support deals and business, emotional healing, money and abundance, relationships, health, and soul purpose. I hold the space in which divine healing occurs — with presence, confidentiality, and care."
+  "I'm Sonia Verma Bhattacharyya, founder of Born to Blossom Soul Awakening — a multi-modality healing sanctuary in Gurgaon, serving seekers across India and the global diaspora in person and online.",
+  "I am a certified practitioner and teacher across more than twenty healing disciplines, and the proponent of two original modalities — Humkaara and Hleem. I do not hold a title above you. I walk beside you — as a guide who has already entered the territory you are about to explore, holding a lamp for your path."
 ] as const;
 
 export const aboutStats = [
-  ["6", "Life areas"],
-  ["1:1", "Sacred sessions"],
-  ["Gurgaon", "India"],
-  ["100%", "Confidential"]
+  ["2000+", "Sessions facilitated"],
+  ["20+", "Healing modalities"],
+  ["8", "Countries served"],
+  ["500+", "corporate wellness participants served"]
+] as const;
+
+export const healingPillars = [
+  {
+    title: "Release What No Longer Serves",
+    copy: "Ancestral trauma, limiting beliefs, emotional wounds, and expired spiritual contracts — cleared so you reclaim energy spent in survival."
+  },
+  {
+    title: "Reconnect to Your Authentic Self",
+    copy: "Not to fix you — but to remind you. Intuition, body wisdom, lineage gifts, and the divine intelligence guiding your life."
+  },
+  {
+    title: "Recalibrate for a Life You Love",
+    copy: "When the subconscious landscape shifts, relationships, work, body, and finances follow — change that is whole, lasting, and joy-filled."
+  }
 ] as const;
 
 export const youtubeVideos = [
@@ -109,59 +77,86 @@ export type TestimonialItem = {
 export const testimonials: TestimonialItem[] = [
   {
     quote:
-      "I felt deeply seen and safe. The session helped me understand a family pattern I had carried for years.",
-    name: "Priya Sharma",
-    role: "Private Client",
+      "I had spent ten years in conventional therapy working through my mother wound — and I’m deeply grateful for all of it. But it was the Family Constellation session at Born to Blossom that completed something. I wept for my grandmother, whom I’d never met, and felt something in my body release that therapy had never reached. I am a different woman since that afternoon.",
+    name: "P.K.",
+    role: "Delhi · Family Constellation",
     rating: 5
   },
   {
     quote:
-      "The blend of clinical insight and spiritual steadiness was unlike anything I had experienced before.",
-    name: "Ananya Mehta",
-    role: "Private Client",
+      "The Reiki Master sessions I received during my chemotherapy treatment were the only time I felt truly peaceful and not like a patient. My oncology nurse noticed that I healed faster than expected from my surgery. I cannot prove what’s connected, but in my heart I know.",
+    name: "A.S.",
+    role: "Gurugram · Reiki",
     rating: 5
   },
   {
     quote:
-      "A calm, beautiful space where practical healing and inner wisdom meet with so much compassion.",
-    name: "Rhea Kapoor",
-    role: "Private Client",
-    rating: 4
+      "I came for the Quantum Belief Reprogramming work specifically for my money blocks. Three sessions in, I had dissolved a belief about ‘people like us don’t succeed’ that I’d absorbed from my father’s entire attitude to life. Within two months, I had my first six-figure month in business.",
+    name: "M.J.",
+    role: "Bengaluru · Quantum Belief Reprogramming",
+    rating: 5
+  },
+  {
+    quote:
+      "The Humkaara session was unlike anything I have words for. Something moved through me during the session that I can only call grace. Three months later, the relationship pattern that had repeated in every partnership I’d had since my twenties has not reappeared.",
+    name: "R.D.",
+    role: "Pune · Humkaara",
+    rating: 5
+  },
+  {
+    quote:
+      "We brought Born to Blossom to our annual leadership offsite with healthy scepticism. What happened across those two days changed the way we lead, communicate, and hold each other. Attrition in that team has dropped 60 percent in the following year.",
+    name: "CEO",
+    role: "Fintech Company, Gurugram",
+    rating: 5
+  },
+  {
+    quote:
+      "RESTORE was the best investment I’ve ever made in myself — and I have invested significantly over the years. The eight sessions were each distinct, each necessary, and each building on the last. I emerged from the programme as someone I genuinely like.",
+    name: "N.A.",
+    role: "Delhi · RESTORE",
+    rating: 5
   }
 ];
 
 export const contactInfo = {
   phone: "+91 75068 28722",
   whatsapp: "+91 75068 28722",
-  email: "hello@borntoblossom.com",
-  location: "Gurgaon, Haryana, India",
+  email: "sonia@borntoblossom.in",
+  website: "https://borntoblossom.in",
+  location: "Gurgaon, NCR, India",
   calendarInviteTo: "sonia.verma14@gmail.com",
-  calendarInviteCc: "sonia@borntoblossom.in"
+  calendarInviteCc: "sonia@borntoblossom.in",
+  instagramPrimary: "https://www.instagram.com/borntoblossom_soulawakening/",
+  instagramHealing: "https://www.instagram.com/borntoblossomhealing/",
+  youtube: "https://www.youtube.com/@borntoblossomhealing"
 } as const;
 
 export const bookingBenefits = [
-  "Personalized Care",
-  "Safe & Confidential",
-  "Holistic & Integrative",
-  "Compassionate Support"
+  "Complimentary discovery call for new clients",
+  "Safe & confidential container",
+  "In-person Gurgaon · Online worldwide",
+  "Multi-modality, personalised care"
 ] as const;
 
 export const footerQuickLinks = [
   "Home",
   "About",
   "Services",
-  "Videos",
+  "Corporate",
+  "Workshops",
+  "RESTORE",
+  "FAQ",
   "Blog",
-  "Testimonials",
-  "Book Session",
+  "Book",
   "Contact"
 ] as const;
 
 export const footerServices = [
-  "Psychiatric Consultation",
   "Family Constellation Therapy",
-  "Spiritual Healing",
-  "Tarot Reading",
-  "Energy Reading",
-  "Meditation Guidance"
+  "Reiki Healing",
+  "Humkaara",
+  "Hleem",
+  "RESTORE",
+  "Corporate Wellness"
 ] as const;

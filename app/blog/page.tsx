@@ -7,11 +7,16 @@ import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { Container } from "@/components/layout/Container";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog | Born To Blossom",
-  description: "Reflections on healing, growth, and spiritual wisdom from Born To Blossom."
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Blog",
+  description:
+    "Reflections on healing, growth, and spiritual wisdom from Born to Blossom Soul Awakening — guides on Family Constellation, Reiki, Humkaara, and more.",
+  path: "/blog",
+  keywords: ["Born to Blossom blog", "healing guides", "energy healing articles"]
+});
 
 export const revalidate = 60;
 
@@ -31,7 +36,13 @@ export default async function BlogPage() {
       <Navbar />
       <main className="pb-16 pt-6 md:pb-24 md:pt-28">
         <Container>
-          <div className="mx-auto max-w-[920px]">
+          <Breadcrumbs
+            items={[
+              { name: "Home", path: "/" },
+              { name: "Blog", path: "/blog" }
+            ]}
+          />
+          <div className="mx-auto mt-6 max-w-[920px]">
             <p className="eyebrow">Journal</p>
             <h1 className="mt-3 font-display text-[2.4rem] font-medium leading-[1.1] tracking-[-0.03em] text-[#2E2925] md:text-[3.25rem]">
               Blog

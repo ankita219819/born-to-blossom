@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { contactInfo, services } from "@/lib/content";
+import { contactInfo } from "@/lib/content";
+import { allServices } from "@/lib/services-data";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,7 +31,7 @@ function normalizeWhatsAppNumber(number: string) {
 }
 
 function getServiceDurationMinutes(service: string) {
-  const duration = services.find((item) => item.title === service)?.time.match(/(\d+)/);
+  const duration = allServices.find((item) => item.title === service)?.duration.match(/(\d+)/);
   return duration ? Number.parseInt(duration[1], 10) : 60;
 }
 
@@ -145,7 +146,7 @@ export function downloadBookingIcs(details: BookingDetails) {
     "CALSCALE:GREGORIAN",
     "METHOD:REQUEST",
     "BEGIN:VEVENT",
-    `UID:${Date.now()}@borntoblossom.com`,
+    `UID:${Date.now()}@borntoblossom.in`,
     `DTSTAMP:${formatIcsUtcStamp(new Date())}`,
     `DTSTART;VALUE=DATE:${start}`,
     `DTEND;VALUE=DATE:${end}`,

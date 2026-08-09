@@ -13,7 +13,7 @@ const HERO_IMAGE = {
   src: "/images/hero-main.webp",
   width: 1122,
   height: 1402,
-  alt: "Born To Blossom practitioner seated in a warm therapy room with cherry blossoms outside the window"
+  alt: "Born to Blossom practitioner seated in a warm healing space with cherry blossoms outside the window"
 } as const;
 
 export function Hero() {
@@ -51,7 +51,7 @@ export function Hero() {
                 className="h-[4.75rem] w-[3.25rem] shrink-0 object-contain object-left"
               />
               <span className="max-w-[11.5rem] text-center text-[0.68rem] leading-[1.55] tracking-[0.12em]">
-                A space for healing, growth and awakening
+                Where healing meets homecoming
               </span>
               <Image
                 src="/images/leaf-2.webp"
@@ -63,7 +63,7 @@ export function Hero() {
               />
             </span>
             <span className="hidden items-center gap-3 md:flex">
-              <Sparkles className="h-4 w-4" /> A space for healing, growth and awakening
+              <Sparkles className="h-4 w-4" /> Where healing meets homecoming
             </span>
           </p>
 
@@ -75,11 +75,11 @@ export function Hero() {
               min-[1200px]:text-[4.5rem] xl:text-[5rem]
             "
           >
-            Helping You Heal,
+            Heal. Release.
             <br />
-            Grow &amp;
+            Reclaim.
             <br />
-            <span className="text-blossom-rose">Blossom</span>
+            <span className="text-blossom-rose">Blossom.</span>
           </h1>
 
           <p
@@ -89,7 +89,9 @@ export function Hero() {
               min-[1200px]:mt-7 min-[1200px]:text-[1.125rem]
             "
           >
-            Where Psychiatry Meets Spiritual Wisdom
+            You carry within you the wisdom of centuries and the wounds of lifetimes. Born to Blossom
+            Soul Awakening helps you unravel what has been knotted and return to the radiant truth of
+            who you are. This is not just healing — this is a homecoming.
           </p>
 
           <div
@@ -101,10 +103,10 @@ export function Hero() {
             "
           >
             <Button href="#book-session" className="w-full sm:w-auto">
-              Book Your Session <Leaf className="h-4 w-4" />
+              Book a Healing Session <Leaf className="h-4 w-4" />
             </Button>
             <Button href="#services" variant="secondary" className="w-full sm:w-auto">
-              Explore Services <ArrowRight className="h-4 w-4" />
+              Explore Our Services <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
 

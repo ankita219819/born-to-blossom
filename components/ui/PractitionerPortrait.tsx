@@ -5,7 +5,7 @@ export const PRACTITIONER_PORTRAIT = {
   src: "/images/practitioner-about.webp",
   width: 1024,
   height: 1536,
-  alt: "Born To Blossom practitioner — warm, professional portrait"
+  alt: "Sonia Verma Bhattacharyya, founder of Born to Blossom Soul Awakening"
 } as const;
 
 type PractitionerPortraitProps = {

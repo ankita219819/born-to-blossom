@@ -9,9 +9,30 @@ import { SacredMark } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
 
 function navHref(item: string) {
-  if (item === "Blog") return "/blog";
-  if (item === "Home") return "/#home";
-  return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
+  switch (item) {
+    case "Home":
+      return "/#home";
+    case "About":
+      return "/about";
+    case "Services":
+      return "/services";
+    case "Corporate":
+      return "/corporate";
+    case "Workshops":
+      return "/workshops";
+    case "Blog":
+      return "/blog";
+    case "FAQ":
+      return "/faq";
+    case "Book":
+      return "/#book-session";
+    case "RESTORE":
+      return "/restore";
+    case "Contact":
+      return "/#contact";
+    default:
+      return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
+  }
 }
 
 function BrandLockup({ className }: { className?: string }) {
@@ -21,7 +42,7 @@ function BrandLockup({ className }: { className?: string }) {
       <span>
         <span className="block font-display text-xl leading-none md:text-2xl">Born To Blossom</span>
         <span className="block text-[0.6rem] font-semibold tracking-[0.16em] text-blossom-ink/55 md:text-[0.65rem]">
-          Heal. Grow. Awaken.
+          Heal. Release. Reclaim. Blossom.
         </span>
       </span>
     </Link>
@@ -73,7 +94,7 @@ export function Navbar() {
             href="/#book-session"
             className="button-ripple inline-flex h-[48px] items-center gap-2 rounded-full bg-[#365A43] px-5 text-[0.875rem] font-semibold text-white shadow-[0_8px_20px_rgba(54,90,67,0.20)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#2D4B37] md:h-[52px] md:px-7 md:text-[0.9375rem]"
           >
-            Book Your Session <Leaf className="h-4 w-4" />
+            Book a Healing Session <Leaf className="h-4 w-4" />
           </Link>
         </div>
 
@@ -105,7 +126,7 @@ export function Navbar() {
             onClick={() => setOpen(false)}
             className="mt-2 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#365A43] px-6 text-sm font-semibold text-white md:hidden"
           >
-            Book Your Session <Leaf className="h-4 w-4" />
+            Book a Healing Session <Leaf className="h-4 w-4" />
           </Link>
         </Container>
       ) : null}

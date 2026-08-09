@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronRight, Instagram, Leaf, Mail, MapPin, Phone, Youtube } from "lucide-react";
-import { footerQuickLinks, footerServices } from "@/lib/content";
+import { contactInfo, footerQuickLinks, footerServices } from "@/lib/content";
+import { allServices } from "@/lib/services-data";
 import { cn } from "@/lib/utils";
 import { SacredMark } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
@@ -11,30 +12,71 @@ import { FooterDecoration } from "@/components/decorations/FooterDecoration";
 
 const SOCIAL_LINKS = [
   {
-    href: "https://www.instagram.com/borntoblossom_soulawakening/",
-    label: "Instagram",
+    href: contactInfo.instagramPrimary,
+    label: "Instagram — Soul Awakening",
     Icon: Instagram
   },
   {
-    href: "https://www.youtube.com/@BornToBlossomHealing",
+    href: contactInfo.instagramHealing,
+    label: "Instagram — Healing",
+    Icon: Instagram
+  },
+  {
+    href: contactInfo.youtube,
     label: "YouTube",
     Icon: Youtube
   }
 ] as const;
 
 function quickLinkHref(item: string) {
-  if (item === "Blog") return "/blog";
-  if (item === "Home") return "/#home";
-  return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
+  switch (item) {
+    case "Home":
+      return "/#home";
+    case "About":
+      return "/about";
+    case "Services":
+      return "/services";
+    case "Corporate":
+      return "/corporate";
+    case "Workshops":
+      return "/workshops";
+    case "Blog":
+      return "/blog";
+    case "FAQ":
+      return "/faq";
+    case "RESTORE":
+      return "/restore";
+    case "Book":
+      return "/#book-session";
+    case "Contact":
+      return "/#contact";
+    default:
+      return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
+  }
 }
 
-function FooterColumn({ title, items }: { title: string; items: readonly string[] }) {
+function serviceHref(label: string) {
+  const match = allServices.find(
+    (service) => service.title === label || service.shortTitle === label
+  );
+  return match ? `/services/${match.slug}` : "/services";
+}
+
+function FooterColumn({
+  title,
+  items,
+  hrefFor
+}: {
+  title: string;
+  items: readonly string[];
+  hrefFor?: (item: string) => string;
+}) {
   return (
     <div>
       <h3 className="font-bold">{title}</h3>
       <div className="mt-4 grid gap-2.5 text-sm text-blossom-ink/65 md:mt-5 md:gap-3">
         {items.map((item) => (
-          <Link key={item} href={quickLinkHref(item)} className="hover:text-blossom-green">
+          <Link key={item} href={(hrefFor ?? quickLinkHref)(item)} className="hover:text-blossom-green">
             {item}
           </Link>
         ))}
@@ -75,7 +117,7 @@ function SocialLinks({ className }: { className?: string }) {
     <div className={cn("flex gap-4", className)}>
       {SOCIAL_LINKS.map(({ href, label, Icon }) => (
         <a
-          key={label}
+          key={href}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
@@ -93,14 +135,27 @@ function ConnectDetails({ className }: { className?: string }) {
   return (
     <div className={cn("grid gap-3 text-sm text-blossom-ink/68", className)}>
       <p className="flex items-center gap-3">
-        <Mail className="h-4 w-4 shrink-0 text-blossom-rose" /> hello@borntoblossom.com
+        <Mail className="h-4 w-4 shrink-0 text-blossom-rose" /> {contactInfo.email}
       </p>
       <p className="flex items-center gap-3">
-        <Phone className="h-4 w-4 shrink-0 text-blossom-rose" /> +91 75068 28722
+        <Phone className="h-4 w-4 shrink-0 text-blossom-rose" /> {contactInfo.phone}
       </p>
-      <p className="flex items-center gap-3">
-        <MapPin className="h-4 w-4 shrink-0 text-blossom-rose" /> Gurgaon, Haryana, India
+      <p className="flex items-start gap-3">
+        <MapPin className="h-4 w-4 shrink-0 text-blossom-rose" />
+        <span>
+          {contactInfo.location}
+          <br />
+          In-person &amp; online worldwide
+        </span>
       </p>
+      <a
+        href={contactInfo.website}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold text-[#365A43] hover:underline"
+      >
+        borntoblossom.in
+      </a>
     </div>
   );
 }
@@ -120,7 +175,9 @@ export function Footer() {
             <SacredMark className="w-11 shrink-0" />
             <div>
               <h2 className="font-display text-[1.5rem] font-medium leading-none text-[#2E2925]">Born To Blossom</h2>
-              <p className="mt-1.5 text-[0.72rem] font-bold tracking-[0.08em] text-[#2E2925]">Heal. Grow. Awaken.</p>
+              <p className="mt-1.5 text-[0.72rem] font-bold tracking-[0.08em] text-[#2E2925]">
+                Where Healing Meets Homecoming
+              </p>
             </div>
           </div>
 
@@ -144,13 +201,9 @@ export function Footer() {
             <FooterAccordion title="Services">
               <div className="grid gap-2.5 text-sm text-blossom-ink/65">
                 {footerServices.map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
-                    className="hover:text-blossom-green"
-                  >
+                  <Link key={item} href={serviceHref(item)} className="hover:text-blossom-green">
                     {item}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </FooterAccordion>
@@ -167,7 +220,7 @@ export function Footer() {
                 href="/#book-session"
                 className="button-ripple mt-4 inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[#365A43] text-[0.9375rem] font-semibold text-white shadow-[0_12px_28px_rgba(54,90,67,0.22)]"
               >
-                Book Your Session <Leaf className="h-4 w-4" />
+                Book a Healing Session <Leaf className="h-4 w-4" />
               </a>
             </FooterAccordion>
           </div>
@@ -209,7 +262,7 @@ export function Footer() {
         </div>
 
         <FooterColumn title="Quick Links" items={footerQuickLinks} />
-        <FooterColumn title="Services" items={footerServices} />
+        <FooterColumn title="Services" items={footerServices} hrefFor={serviceHref} />
 
         <div>
           <h3 className="font-bold">Connect</h3>

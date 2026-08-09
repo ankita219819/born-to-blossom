@@ -9,6 +9,7 @@ import { Container } from "@/components/layout/Container";
 
 function getInitials(name: string) {
   return name
+    .replace(/\./g, " ")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -55,7 +56,12 @@ export function Testimonials() {
   return (
     <Section id="testimonials" endPad className="overflow-visible">
       <Container className="relative z-10">
-        <SectionHeading centered eyebrow="Testimonials" title="Held With Warmth, Care & Clarity" />
+        <SectionHeading
+          centered
+          eyebrow="Testimonials"
+          title="What Our Community Shares"
+          copy="The best evidence of healing is a changed life."
+        />
 
         <div className="relative z-10 mt-10 flex items-center justify-center gap-3 sm:mt-14 sm:gap-6 md:gap-10 lg:gap-14">
           <NavArrow direction="prev" onClick={goPrev} label="Previous testimonial" />

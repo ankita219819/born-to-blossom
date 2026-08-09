@@ -13,9 +13,13 @@ import {
   MapPin,
   MessageCircle,
   Monitor,
-  Send
+  PhoneCall,
+  Send,
+  Sparkles
 } from "lucide-react";
-import { bookingBenefits, services } from "@/lib/content";
+import { bookingBenefits } from "@/lib/content";
+import { bookingSteps, confidentialityNote } from "@/lib/faq-content";
+import { allServices } from "@/lib/services-data";
 import {
   buildGoogleCalendarUrl,
   buildWhatsAppBookingUrl,
@@ -90,19 +94,24 @@ function buildMonthCells(year: number, month: number) {
 
 const HOW_IT_WORKS = [
   {
-    title: "Fill the form",
-    copy: "Tell us about yourself and choose your preferred service.",
+    title: bookingSteps[0].title,
+    copy: bookingSteps[0].copy,
     Icon: ClipboardList
   },
   {
-    title: "Select Date",
-    copy: "Pick a preferred date that works best for you.",
-    Icon: CalendarDays
+    title: bookingSteps[1].title,
+    copy: bookingSteps[1].copy,
+    Icon: PhoneCall
   },
   {
-    title: "Get Confirmation",
-    copy: "Our team will confirm your session and share all the details with you.",
+    title: bookingSteps[2].title,
+    copy: bookingSteps[2].copy,
     Icon: MessageCircle
+  },
+  {
+    title: bookingSteps[3].title,
+    copy: bookingSteps[3].copy,
+    Icon: Sparkles
   }
 ] as const;
 
@@ -110,10 +119,11 @@ function BookingIntro({ className }: { className?: string }) {
   return (
     <div className={cn("text-center md:text-left", className)}>
       <h2 className="font-display text-[2rem] font-medium leading-[1.1] tracking-[-0.03em] text-[#2E2925] md:text-[2.35rem] min-[1200px]:text-[2.1rem]">
-        Book Your Healing Session
+        Begin Your Journey
       </h2>
       <p className="mt-3 text-[0.9rem] leading-[1.7] text-[#6F6258] md:mt-4 md:text-[0.95rem]">
-        Fill out this form and our team will get back to you for confirmation of your session slot.
+        The first step asks the least of you — just reach out. Enquiry, discovery call, confirmation,
+        then your session. In person in Gurgaon, or online worldwide.
       </p>
       <div className="mt-5 grid gap-2.5 sm:grid-cols-2 md:mt-6 min-[1200px]:grid-cols-1">
         {bookingBenefits.map((label) => (
@@ -280,7 +290,7 @@ export function Booking() {
                     <FieldLabel>Choose Service</FieldLabel>
                     <select {...register("service", { required: true })} className={fieldClass}>
                       <option value="">Select a service</option>
-                      {services.map(({ title }) => (
+                      {allServices.map(({ title }) => (
                         <option key={title}>{title}</option>
                       ))}
                     </select>
@@ -507,8 +517,8 @@ export function Booking() {
                         {medicalDisclaimer ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
                       </button>
                       <span>
-                        I understand that Born to Blossom services are not a replacement for medical, psychiatric, or
-                        psychological care and do not provide diagnosis or medical treatment.{" "}
+                        I understand that Born to Blossom offers complementary healing and is not a replacement for
+                        medical or licensed mental-health care, and does not provide diagnosis or medical treatment.{" "}
                         <span className="text-[#C45C5C]">*</span>
                       </span>
                     </label>
@@ -543,6 +553,10 @@ export function Booking() {
                       </span>
                     </label>
                     <input type="checkbox" className="sr-only" {...register("confidentiality", { required: true })} />
+
+                    <p className="rounded-[12px] border border-[#EFE5DA] bg-[#F8F3ED]/70 p-3 text-[0.75rem] leading-[1.65] text-[#6F6258]">
+                      {confidentialityNote}
+                    </p>
 
                     {(formState.errors.medicalDisclaimer || formState.errors.confidentiality) && (
                       <p className="text-[0.75rem] font-medium text-[#B45309]">Please agree to both statements to continue.</p>
