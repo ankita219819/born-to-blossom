@@ -8,7 +8,7 @@ import {
 
 export const SITE_URL = "https://borntoblossom.in";
 export const SITE_NAME = "Born to Blossom Soul Awakening";
-export const DEFAULT_OG_IMAGE = "/images/practitioner-about.webp";
+export const DEFAULT_OG_IMAGE = "/images/logo.png";
 
 export type BreadcrumbItem = {
   name: string;

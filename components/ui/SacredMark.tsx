@@ -1,16 +1,35 @@
-import { Flower2 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-export function SacredMark({ className }: { className?: string }) {
+export const SITE_LOGO = {
+  src: "/images/logo.png",
+  width: 1024,
+  height: 1024,
+  alt: "Born to Blossom logo — a safe and nurturing space for healing emotions"
+} as const;
+
+type BrandLogoProps = {
+  className?: string;
+  /** Decorative mark (watermark); hides from assistive tech */
+  decorative?: boolean;
+  priority?: boolean;
+};
+
+export function BrandLogo({ className, decorative = false, priority = false }: BrandLogoProps) {
   return (
-    <div
-      className={cn("relative aspect-square w-12 rounded-full border border-blossom-rose/35", className)}
-      aria-hidden
-    >
-      <div className="absolute inset-2 rounded-full border border-blossom-gold/60" />
-      <div className="absolute left-1/2 top-1/2 h-[72%] w-px -translate-x-1/2 -translate-y-1/2 rotate-45 bg-blossom-rose/45" />
-      <div className="absolute left-1/2 top-1/2 h-[72%] w-px -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-blossom-rose/45" />
-      <Flower2 className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-blossom-rose" />
-    </div>
+    <Image
+      src={SITE_LOGO.src}
+      alt={decorative ? "" : SITE_LOGO.alt}
+      width={SITE_LOGO.width}
+      height={SITE_LOGO.height}
+      priority={priority}
+      className={cn("h-auto w-full object-contain", className)}
+      aria-hidden={decorative || undefined}
+    />
   );
+}
+
+/** @deprecated Prefer BrandLogo — kept so decorative call sites keep working */
+export function SacredMark({ className }: { className?: string }) {
+  return <BrandLogo className={className} decorative />;
 }

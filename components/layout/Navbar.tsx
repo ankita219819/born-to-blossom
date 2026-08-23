@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Leaf, Menu } from "lucide-react";
 import { navItems } from "@/lib/content";
-import { SacredMark } from "@/components/ui/SacredMark";
+import { BrandLogo } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
 
 function navHref(item: string) {
@@ -37,12 +37,17 @@ function navHref(item: string) {
 
 function BrandLockup({ className }: { className?: string }) {
   return (
-    <Link href="/" className={className} aria-label="Born To Blossom home">
-      <SacredMark className="w-9 shrink-0 md:w-11" />
-      <span>
-        <span className="block font-display text-xl leading-none md:text-2xl">Born To Blossom</span>
-        <span className="block text-[0.6rem] font-semibold tracking-[0.16em] text-blossom-ink/55 md:text-[0.65rem]">
-          Heal. Release. Reclaim. Blossom.
+    <Link href="/" className={className} aria-label="Born to Blossom home">
+      <BrandLogo
+        priority
+        className="h-12 w-12 shrink-0 rounded-[10px] shadow-[0_4px_14px_rgba(30,20,10,0.08)] md:h-14 md:w-14 md:rounded-[12px]"
+      />
+      <span className="min-w-0">
+        <span className="block font-display text-xl leading-none text-[#2E2925] md:text-2xl">
+          Born To Blossom
+        </span>
+        <span className="mt-1 block max-w-[11rem] text-[0.58rem] font-semibold uppercase leading-[1.35] tracking-[0.08em] text-blossom-ink/55 md:max-w-[14rem] md:text-[0.62rem]">
+          A safe and nurturing space for healing emotions
         </span>
       </span>
     </Link>

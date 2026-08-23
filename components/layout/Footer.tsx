@@ -6,7 +6,7 @@ import { ChevronRight, Instagram, Leaf, Mail, MapPin, Phone, Youtube } from "luc
 import { contactInfo, footerQuickLinks, footerServices } from "@/lib/content";
 import { allServices } from "@/lib/services-data";
 import { cn } from "@/lib/utils";
-import { SacredMark } from "@/components/ui/SacredMark";
+import { SacredMark, BrandLogo } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
 import { FooterDecoration } from "@/components/decorations/FooterDecoration";
 
@@ -172,11 +172,11 @@ export function Footer() {
       <Container className="relative z-10 py-6 md:hidden">
         <div className="rounded-[28px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)]">
           <div className="flex items-start gap-3">
-            <SacredMark className="w-11 shrink-0" />
+            <BrandLogo className="w-16 shrink-0 rounded-[12px]" />
             <div>
               <h2 className="font-display text-[1.5rem] font-medium leading-none text-[#2E2925]">Born To Blossom</h2>
               <p className="mt-1.5 text-[0.72rem] font-bold tracking-[0.08em] text-[#2E2925]">
-                Where Healing Meets Homecoming
+                A safe and nurturing space for healing emotions
               </p>
             </div>
           </div>
@@ -239,10 +239,10 @@ export function Footer() {
       {/* Desktop footer */}
       <Container className="relative z-10 hidden grid-cols-1 gap-10 py-10 md:grid md:grid-cols-2 md:gap-12 xl:grid-cols-[1.1fr_0.7fr_1fr_0.9fr] xl:gap-12">
         <div className="max-w-sm md:col-span-2 xl:col-span-1">
-          <SacredMark className="mb-5 w-14 md:w-16" />
+          <BrandLogo className="mb-5 w-20 rounded-[14px] md:w-24" />
           <h2 className="font-display text-[1.75rem] font-medium text-[#2E2925] md:text-[2rem]">Born To Blossom</h2>
           <p className="mt-4 text-[0.875rem] leading-[1.8] text-[#6F6258]">
-            A holistic space for healing, growth and awakening.
+            A safe and nurturing space for healing emotions.
           </p>
           <p className="mt-3 text-[0.875rem] font-semibold text-[#365A43]">You are born to blossom.</p>
           <div className="mt-6 flex gap-3">
