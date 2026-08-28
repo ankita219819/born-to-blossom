@@ -51,6 +51,9 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false
+  },
+  verification: {
+    google: "aB0omNHbZFAFi5pFesK6twSVvddzUxVMBDfxscT14ow"
   }
 };
 
