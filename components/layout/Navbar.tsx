@@ -16,6 +16,8 @@ function navHref(item: string) {
       return "/about";
     case "Services":
       return "/services";
+    case "Assessment":
+      return "/soul-assessment";
     case "Corporate":
       return "/corporate";
     case "Workshops":

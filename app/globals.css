@@ -184,3 +184,37 @@ textarea {
     width: min(100% - 28px, 1440px);
   }
 }
+
+/* ── Soul Prescription print sheet ───────────────────────────────────── */
+@media print {
+  header,
+  footer,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 12pt;
+    line-height: 1.55;
+  }
+
+  main {
+    padding-top: 0 !important;
+  }
+
+  #soul-prescription section,
+  #soul-prescription > div {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  #soul-prescription a {
+    text-decoration: none;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}

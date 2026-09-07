@@ -36,6 +36,8 @@ function quickLinkHref(item: string) {
       return "/about";
     case "Services":
       return "/services";
+    case "Soul Assessment":
+      return "/soul-assessment";
     case "Corporate":
       return "/corporate";
     case "Workshops":

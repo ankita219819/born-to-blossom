@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about",
     "/about/founder",
     "/services",
+    "/soul-assessment",
     "/faq",
     "/corporate",
     "/workshops",
@@ -30,7 +31,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${SITE_URL}${path}`,
     lastModified: now,
     changeFrequency: path === "" || path === "/services" ? "weekly" : "monthly",
-    priority: path === "" ? 1 : path === "/services" || path === "/about" ? 0.9 : 0.8
+    priority:
+      path === ""
+        ? 1
+        : path === "/services" || path === "/about" || path === "/soul-assessment"
+          ? 0.9
+          : 0.8
   }));
 
   const serviceRoutes: MetadataRoute.Sitemap = getAllServiceSlugs().map((slug) => ({
