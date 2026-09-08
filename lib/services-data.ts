@@ -75,7 +75,7 @@ export const allServices: ServiceDetail[] = [
     duration: "60–90 mins",
     format: "In-Person / Online",
     featured: true,
-    image: "/images/spiritual_healing.png",
+    image: "/images/spiritual_healing.webp",
     imageAlt:
       "Silhouette meditating with glowing chakras overlooking a serene mountain sunrise",
     whatIs: [
@@ -142,7 +142,7 @@ export const allServices: ServiceDetail[] = [
     duration: "60–75 mins",
     format: "In-Person preferred / Online available",
     featured: true,
-    image: "/images/meditation.png",
+    image: "/images/meditation.webp",
     imageAlt:
       "Woman meditating on a hilltop beneath cherry blossoms at sunrise",
     whatIs: [
@@ -368,7 +368,7 @@ export const allServices: ServiceDetail[] = [
     duration: "75–90 mins",
     format: "In-Person / Online",
     featured: true,
-    image: "/images/tarot-reading.png",
+    image: "/images/tarot-reading.webp",
     imageAlt: "Hands holding sacred cards beside a lit candle at golden hour",
     whatIs: [
       "A Soul Contract Reading illuminates the pre-birth agreements, lessons, and soul gifts shaping your current incarnation. It is not fortune-telling — it is a map of meaning: why certain relationships repeat, what themes your soul chose to master, and where your unique gifts are asking to be lived.",
@@ -404,7 +404,7 @@ export const allServices: ServiceDetail[] = [
     duration: "90–120 mins (individual) · Group ~4 hrs",
     format: "In-Person preferred / Online available",
     featured: true,
-    image: "/images/family-constellation.png",
+    image: "/images/family-constellation.webp",
     imageAlt:
       "Family standing together on a hilltop connected by golden light at sunrise",
     whatIs: [

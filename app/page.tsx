@@ -4,8 +4,11 @@ import { Footer } from "@/components/layout/Footer";
 import { FooterRightTree } from "@/components/decorations/FooterRightTree";
 import { Hero } from "@/components/hero/Hero";
 import { About } from "@/components/about/About";
-import { Services } from "@/components/services/Services";
 import { SmoothScroll } from "@/components/smooth-scroll";
+
+const Services = dynamic(() => import("@/components/services/Services").then((m) => m.Services), {
+  loading: () => <section className="section-pad" aria-hidden />
+});
 
 const Videos = dynamic(() => import("@/components/videos/Videos").then((m) => m.Videos), {
   loading: () => <section className="section-pad" aria-hidden />

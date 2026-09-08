@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronRight, Instagram, Leaf, Mail, MapPin, Phone, Youtube } from "lucide-react";
 import { contactInfo, footerQuickLinks, footerServices } from "@/lib/content";
-import { allServices } from "@/lib/services-data";
+import { siteHref } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { SacredMark, BrandLogo } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
@@ -28,61 +28,35 @@ const SOCIAL_LINKS = [
   }
 ] as const;
 
-function quickLinkHref(item: string) {
-  switch (item) {
-    case "Home":
-      return "/#home";
-    case "About":
-      return "/about";
-    case "Services":
-      return "/services";
-    case "Soul Assessment":
-      return "/soul-assessment";
-    case "Corporate":
-      return "/corporate";
-    case "Workshops":
-      return "/workshops";
-    case "Blog":
-      return "/blog";
-    case "FAQ":
-      return "/faq";
-    case "RESTORE":
-      return "/restore";
-    case "Book":
-      return "/#book-session";
-    case "Contact":
-      return "/#contact";
-    default:
-      return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
-  }
-}
-
-function serviceHref(label: string) {
-  const match = allServices.find(
-    (service) => service.title === label || service.shortTitle === label
-  );
-  return match ? `/services/${match.slug}` : "/services";
-}
-
 function FooterColumn({
   title,
-  items,
-  hrefFor
+  items
 }: {
   title: string;
   items: readonly string[];
-  hrefFor?: (item: string) => string;
 }) {
   return (
     <div>
       <h3 className="font-bold">{title}</h3>
       <div className="mt-4 grid gap-2.5 text-sm text-blossom-ink/65 md:mt-5 md:gap-3">
         {items.map((item) => (
-          <Link key={item} href={(hrefFor ?? quickLinkHref)(item)} className="hover:text-blossom-green">
+          <Link key={item} href={siteHref(item)} className="hover:text-blossom-green">
             {item}
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+function FooterServiceLinks() {
+  return (
+    <div className="grid gap-2.5 text-sm text-blossom-ink/65">
+      {footerServices.map(({ label, slug }) => (
+        <Link key={slug} href={`/services/${slug}`} className="hover:text-blossom-green">
+          {label}
+        </Link>
+      ))}
     </div>
   );
 }
@@ -193,7 +167,7 @@ export function Footer() {
             <FooterAccordion title="Quick Links">
               <div className="grid gap-2.5 text-sm text-blossom-ink/65">
                 {footerQuickLinks.map((item) => (
-                  <Link key={item} href={quickLinkHref(item)} className="hover:text-blossom-green">
+                  <Link key={item} href={siteHref(item)} className="hover:text-blossom-green">
                     {item}
                   </Link>
                 ))}
@@ -201,13 +175,7 @@ export function Footer() {
             </FooterAccordion>
 
             <FooterAccordion title="Services">
-              <div className="grid gap-2.5 text-sm text-blossom-ink/65">
-                {footerServices.map((item) => (
-                  <Link key={item} href={serviceHref(item)} className="hover:text-blossom-green">
-                    {item}
-                  </Link>
-                ))}
-              </div>
+              <FooterServiceLinks />
             </FooterAccordion>
 
             <FooterAccordion title="Connect">
@@ -264,7 +232,12 @@ export function Footer() {
         </div>
 
         <FooterColumn title="Quick Links" items={footerQuickLinks} />
-        <FooterColumn title="Services" items={footerServices} hrefFor={serviceHref} />
+        <div>
+          <h3 className="font-bold">Services</h3>
+          <div className="mt-4 md:mt-5">
+            <FooterServiceLinks />
+          </div>
+        </div>
 
         <div>
           <h3 className="font-bold">Connect</h3>

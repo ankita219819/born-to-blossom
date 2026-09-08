@@ -8,7 +8,7 @@ import { fadeUp, staggerDelay } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/layout/Container";
 import { Section, SectionHeading } from "@/components/ui/Section";
-import { AboutCherryBlossom } from "@/components/decorations/Decorations";
+import { AboutCherryBlossom } from "@/components/decorations/AboutCherryBlossom";
 
 export function AboutPageView() {
   return (

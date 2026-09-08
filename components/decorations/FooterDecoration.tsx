@@ -15,7 +15,7 @@ export function FooterDecoration() {
         {...treeSway}
       >
         <Image
-          src="/left-tree.png"
+          src="/left-tree.webp"
           alt=""
           width={1040}
           height={1560}
@@ -34,7 +34,7 @@ export function FooterDecoration() {
         {...petalBranchSway}
       >
         <Image
-          src="/images/petal-left.png"
+          src="/images/petal-left.webp"
           alt=""
           width={1024}
           height={1536}
@@ -50,7 +50,7 @@ export function FooterDecoration() {
         {...petalBranchSway}
       >
         <Image
-          src="/images/petal-right.png"
+          src="/images/petal-right.webp"
           alt=""
           width={1024}
           height={1536}
@@ -67,7 +67,7 @@ export function FooterDecoration() {
         {...treeSway}
       >
         <Image
-          src="/right-tree.png"
+          src="/right-tree.webp"
           alt=""
           width={920}
           height={1240}

@@ -5,37 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Leaf, Menu } from "lucide-react";
 import { navItems } from "@/lib/content";
+import { siteHref } from "@/lib/navigation";
 import { BrandLogo } from "@/components/ui/SacredMark";
 import { Container } from "@/components/layout/Container";
-
-function navHref(item: string) {
-  switch (item) {
-    case "Home":
-      return "/#home";
-    case "About":
-      return "/about";
-    case "Services":
-      return "/services";
-    case "Assessment":
-      return "/soul-assessment";
-    case "Corporate":
-      return "/corporate";
-    case "Workshops":
-      return "/workshops";
-    case "Blog":
-      return "/blog";
-    case "FAQ":
-      return "/faq";
-    case "Book":
-      return "/#book-session";
-    case "RESTORE":
-      return "/restore";
-    case "Contact":
-      return "/#contact";
-    default:
-      return `/#${item.toLowerCase().replaceAll(" ", "-")}`;
-  }
-}
 
 function BrandLockup({ className }: { className?: string }) {
   return (
@@ -88,7 +60,7 @@ export function Navbar() {
           {navItems.map((item) => (
             <Link
               key={item}
-              href={navHref(item)}
+              href={siteHref(item)}
               className="text-[0.875rem] font-medium tracking-[0.01em] text-[#5E534A] transition hover:text-[#365A43] xl:text-[0.9375rem]"
             >
               {item}
@@ -121,7 +93,7 @@ export function Navbar() {
           {navItems.map((item) => (
             <Link
               key={item}
-              href={navHref(item)}
+              href={siteHref(item)}
               onClick={() => setOpen(false)}
               className="rounded-2xl px-4 py-3 text-sm font-semibold hover:bg-white/60"
             >

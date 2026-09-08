@@ -13,7 +13,7 @@ export function FooterRightTree() {
       {...treeSway}
     >
       <Image
-        src="/right-tree.png"
+        src="/right-tree.webp"
         alt=""
         width={920}
         height={1240}

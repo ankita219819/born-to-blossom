@@ -28,7 +28,6 @@ import {
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "btb-soul-assessment-v1";
-const OPTION_LETTERS: OptionId[] = ["A", "B", "C", "D", "E"];
 
 type Stage = "intro" | "quiz" | "result";
 
@@ -109,24 +108,34 @@ function Meter({ label, share, numeral }: { label: string; share: number; numera
 
 /* ── Component ───────────────────────────────────────────────────────── */
 
+function resolveQuestionStep(savedAnswers: AnswerMap, savedStep = 0) {
+  const answeredKeys = Object.keys(savedAnswers).length;
+  if (answeredKeys === 0) {
+    return Math.min(Math.max(savedStep, 0), questions.length - 1);
+  }
+
+  const firstUnanswered = questions.findIndex((question) => !savedAnswers[question.id]);
+  return firstUnanswered >= 0 ? firstUnanswered : questions.length - 1;
+}
+
 export function SoulAssessment() {
   const [hydrated, setHydrated] = useState(false);
   const [stage, setStage] = useState<Stage>("intro");
   const [step, setStep] = useState(0);
+  const [navDirection, setNavDirection] = useState<1 | -1>(1);
   const [name, setName] = useState("");
   const [answers, setAnswers] = useState<AnswerMap>({});
-  const [hasSaved, setHasSaved] = useState(false);
   const [showIncomplete, setShowIncomplete] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = loadState();
     if (saved) {
+      const nextAnswers = saved.answers ?? {};
       setName(saved.name ?? "");
-      setAnswers(saved.answers ?? {});
-      setHasSaved(Object.keys(saved.answers ?? {}).length > 0);
+      setAnswers(nextAnswers);
       if (saved.stage === "result") setStage("intro");
-      setStep(Math.min(Math.max(saved.step ?? 0, 0), dimensions.length - 1));
+      setStep(resolveQuestionStep(nextAnswers, saved.step ?? 0));
     }
     setHydrated(true);
   }, []);
@@ -146,15 +155,9 @@ export function SoulAssessment() {
   );
 
   const answered = answeredCount(answers);
-  const progress = Math.round((answered / questions.length) * 100);
-
-  const dimension = dimensions[step];
-  const stepQuestions = useMemo(
-    () => questions.filter((question) => question.dimension === dimension?.id),
-    [dimension?.id]
-  );
-  const stepComplete = stepQuestions.every((question) => Boolean(answers[question.id]));
-
+  const question = questions[step];
+  const dimension = dimensions.find((item) => item.id === question?.dimension);
+  const progress = Math.round(((step + 1) / questions.length) * 100);
   const result = useMemo(
     () => (stage === "result" ? scoreAssessment(answers) : null),
     [answers, stage]
@@ -167,29 +170,31 @@ export function SoulAssessment() {
   function choose(questionId: number, optionId: OptionId) {
     const next = { ...answers, [questionId]: optionId };
     setAnswers(next);
-    setHasSaved(true);
     setShowIncomplete(false);
     persist({ answers: next });
   }
 
   function begin(resume: boolean) {
     const nextAnswers = resume ? answers : {};
-    const nextStep = resume ? step : 0;
-    if (!resume) {
-      setAnswers({});
-      setStep(0);
-    }
+    const nextStep = resume ? resolveQuestionStep(answers, step) : 0;
+    if (!resume) setAnswers({});
+    setStep(nextStep);
+    setNavDirection(1);
     setStage("quiz");
     persist({ answers: nextAnswers, step: nextStep, stage: "quiz" });
     requestAnimationFrame(scrollToTop);
   }
 
   function goNext() {
-    if (!stepComplete) {
+    if (!question || !answers[question.id]) {
       setShowIncomplete(true);
       return;
     }
-    if (step < dimensions.length - 1) {
+
+    setNavDirection(1);
+    setShowIncomplete(false);
+
+    if (step < questions.length - 1) {
       const nextStep = step + 1;
       setStep(nextStep);
       persist({ step: nextStep });
@@ -201,6 +206,9 @@ export function SoulAssessment() {
   }
 
   function goBack() {
+    setNavDirection(-1);
+    setShowIncomplete(false);
+
     if (step === 0) {
       setStage("intro");
       persist({ stage: "intro" });
@@ -209,15 +217,14 @@ export function SoulAssessment() {
       setStep(nextStep);
       persist({ step: nextStep });
     }
-    setShowIncomplete(false);
     requestAnimationFrame(scrollToTop);
   }
 
   function restart() {
     setAnswers({});
     setStep(0);
+    setNavDirection(1);
     setStage("intro");
-    setHasSaved(false);
     saveState({ name, answers: {}, stage: "intro", step: 0, updatedAt: new Date().toISOString() });
     requestAnimationFrame(scrollToTop);
   }
@@ -254,63 +261,61 @@ export function SoulAssessment() {
                   setName(value);
                   persist({ name: value });
                 }}
-                hasSaved={hasSaved}
                 answered={answered}
                 onStart={begin}
               />
             </motion.div>
           ) : null}
 
-          {stage === "quiz" && dimension ? (
+          {stage === "quiz" && question && dimension ? (
             <motion.div
-              key={`quiz-${dimension.id}`}
+              key="quiz"
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
               <Container className="pb-16 pt-6 md:pb-24 md:pt-10">
-                <div className="mx-auto max-w-3xl">
-                  <div className="sticky top-0 z-30 -mx-4 mb-8 bg-[#FCF8F3]/92 px-4 py-4 backdrop-blur md:top-24 md:mx-0 md:rounded-[20px] md:border md:border-[#EFE5DA] md:bg-[#FFFDFC]/92 md:px-6">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#C69C6D]">
-                        Dimension {dimension.numeral} of V
-                      </p>
-                      <p className="text-[0.8rem] font-semibold tabular-nums text-[#6F6258]">
-                        {answered}/{questions.length}
-                      </p>
-                    </div>
-                    <div className="mt-3 h-[6px] w-full overflow-hidden rounded-full bg-[#EFE5DA]">
-                      <motion.div
-                        className="h-full rounded-full bg-[#365A43]"
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                      />
-                    </div>
+                <div className="mx-auto max-w-2xl">
+                  <div className="mb-4 flex items-end justify-between gap-4 px-1">
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#C69C6D]">
+                      {dimension.shortTitle}
+                    </p>
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#9A8D82]">
+                      Question {step + 1} of {questions.length}
+                    </p>
                   </div>
 
-                  <h2 className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.03em] text-[#2E2925] md:text-[2.25rem]">
-                    {dimension.title}
-                  </h2>
-                  <p className="mt-3 text-[0.95rem] leading-[1.8] text-[#6F6258] md:text-[1rem]">
-                    {dimension.intro}
-                  </p>
+                  <div className="mb-6 h-[6px] w-full overflow-hidden rounded-full bg-[#EFE5DA]">
+                    <motion.div
+                      className="h-full rounded-full bg-[#365A43]"
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.45, ease: "easeOut" }}
+                    />
+                  </div>
 
-                  <div className="mt-10 grid gap-8 md:mt-12 md:gap-10">
-                    {stepQuestions.map((question, questionIndex) => (
-                      <fieldset
-                        key={question.id}
-                        className="rounded-[22px] border border-[#EFE5DA] bg-[#FFFDFC] p-5 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:rounded-[26px] md:p-7"
-                      >
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={question.id}
+                      initial={{ opacity: 0, x: navDirection * 48 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: navDirection * -48 }}
+                      transition={{ duration: 0.32, ease: "easeOut" }}
+                      className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-5 shadow-[0_16px_40px_rgba(30,20,10,0.06)] md:rounded-[28px] md:p-8"
+                    >
+                      <p className="font-display text-[0.95rem] tracking-[0.02em] text-[#C69C6D]">
+                        Question {step + 1}
+                      </p>
+                      <h2 className="mt-3 font-display text-[1.45rem] font-medium leading-[1.25] tracking-[-0.02em] text-[#2E2925] md:text-[1.75rem]">
+                        {question.prompt}
+                      </h2>
+                      <p className="mt-2 text-[0.875rem] italic leading-[1.6] text-[#9A8D82]">
+                        Choose the response that resonates most.
+                      </p>
+
+                      <fieldset className="mt-6">
                         <legend className="sr-only">{question.prompt}</legend>
-                        <p className="flex gap-3 text-[1rem] font-medium leading-[1.55] text-[#2E2925] md:text-[1.0625rem]">
-                          <span className="mt-[2px] shrink-0 font-display text-[1.05rem] text-[#C69C6D]">
-                            Q{question.id}
-                          </span>
-                          <span>{question.prompt}</span>
-                        </p>
-
-                        <div className="mt-5 grid gap-2.5">
+                        <div className="grid gap-2.5">
                           {question.options.map((option) => {
                             const selected = answers[question.id] === option.id;
                             return (
@@ -334,7 +339,7 @@ export function SoulAssessment() {
                                 <span
                                   aria-hidden
                                   className={cn(
-                                    "mt-[1px] grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[0.75rem] font-semibold transition",
+                                    "mt-[1px] grid h-7 w-7 shrink-0 place-items-center rounded-[7px] border text-[0.75rem] font-semibold transition",
                                     selected
                                       ? "border-[#365A43] bg-[#365A43] text-white"
                                       : "border-[#DCCDBE] bg-white text-[#9A8D82] group-hover:border-[#C69C6D]"
@@ -354,35 +359,30 @@ export function SoulAssessment() {
                             );
                           })}
                         </div>
-
-                        {showIncomplete && !answers[question.id] ? (
-                          <p className="mt-3 text-[0.82rem] font-medium text-[#B4635A]">
-                            Please choose the response that resonates most.
-                          </p>
-                        ) : null}
-                        <span className="sr-only">
-                          Question {questionIndex + 1} of {stepQuestions.length}
-                        </span>
                       </fieldset>
-                    ))}
-                  </div>
 
-                  <div className="mt-10 flex flex-col-reverse gap-3 md:mt-12 md:flex-row md:items-center md:justify-between">
-                    <button
-                      type="button"
-                      onClick={goBack}
-                      className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-6 text-[0.9375rem] font-semibold text-[#365A43] transition hover:border-[#365A43]"
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                      {step === 0 ? "Back to start" : `Dimension ${dimensions[step - 1].numeral}`}
-                    </button>
-                    <Button onClick={goNext} className="w-full md:w-auto">
-                      {step === dimensions.length - 1
-                        ? "Reveal my Soul Prescription"
-                        : `Continue to Dimension ${dimensions[step + 1].numeral}`}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                      {showIncomplete && !answers[question.id] ? (
+                        <p className="mt-4 text-[0.82rem] font-medium text-[#B4635A]">
+                          Please choose the response that resonates most.
+                        </p>
+                      ) : null}
+
+                      <div className="mt-8 flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={goBack}
+                          className="inline-flex h-[48px] items-center justify-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-5 text-[0.9rem] font-semibold text-[#365A43] transition hover:border-[#365A43] md:h-[52px] md:px-6"
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                          Back
+                        </button>
+                        <Button onClick={goNext} className="h-[48px] min-w-[9.5rem] md:h-[52px]">
+                          {step === questions.length - 1 ? "Reveal result" : "Next"}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
 
                   <p className="mt-6 flex items-center justify-center gap-2 text-center text-[0.78rem] text-[#9A8D82]">
                     <Lock className="h-3.5 w-3.5" />
@@ -408,6 +408,7 @@ export function SoulAssessment() {
                 onReview={() => {
                   setStage("quiz");
                   setStep(0);
+                  setNavDirection(1);
                   persist({ stage: "quiz", step: 0 });
                   requestAnimationFrame(scrollToTop);
                 }}
@@ -425,13 +426,11 @@ export function SoulAssessment() {
 function IntroView({
   name,
   onNameChange,
-  hasSaved,
   answered,
   onStart
 }: {
   name: string;
   onNameChange: (value: string) => void;
-  hasSaved: boolean;
   answered: number;
   onStart: (resume: boolean) => void;
 }) {
@@ -500,10 +499,10 @@ function IntroView({
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button onClick={() => onStart(false)} className="w-full sm:w-auto">
-                {hasSaved ? "Start fresh" : "Begin the assessment"}
+                {answered > 0 ? "Start fresh" : "Begin the assessment"}
                 <Flower2 className="h-4 w-4" />
               </Button>
-              {hasSaved && answered > 0 ? (
+              {answered > 0 ? (
                 <button
                   type="button"
                   onClick={() => onStart(true)}

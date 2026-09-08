@@ -8,7 +8,13 @@ import {
 
 export const SITE_URL = "https://borntoblossom.in";
 export const SITE_NAME = "Born to Blossom Soul Awakening";
-export const DEFAULT_OG_IMAGE = "/images/logo.png";
+export const DEFAULT_OG_IMAGE = "/images/logo.webp";
+
+export const SITE_ICONS: NonNullable<Metadata["icons"]> = {
+  icon: [{ url: DEFAULT_OG_IMAGE, type: "image/webp" }],
+  shortcut: DEFAULT_OG_IMAGE,
+  apple: DEFAULT_OG_IMAGE
+};
 
 export type BreadcrumbItem = {
   name: string;

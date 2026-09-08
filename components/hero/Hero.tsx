@@ -2,19 +2,27 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, Leaf, Sparkles } from "lucide-react";
-import { heroFeatures } from "@/lib/content";
+import { ArrowRight, ClipboardList, Flower2, Globe2, Leaf, ShieldCheck, Sparkles } from "lucide-react";
+import { heroFeatureLabels } from "@/lib/content";
 import { heroFade } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/layout/Container";
-import { FloatingPetals, SideBotanicalBranch } from "@/components/decorations/Decorations";
+import { FloatingPetals } from "@/components/decorations/FloatingPetals";
+import { SideBotanicalBranch } from "@/components/decorations/SideBotanicalBranch";
 
 const HERO_IMAGE = {
   src: "/images/hero-main.webp",
-  width: 1122,
-  height: 1402,
+  width: 1024,
+  height: 1536,
   alt: "Born to Blossom practitioner seated in a warm healing space with cherry blossoms outside the window"
 } as const;
+
+const heroFeatures = [
+  [heroFeatureLabels[0], Sparkles],
+  [heroFeatureLabels[1], Flower2],
+  [heroFeatureLabels[2], Globe2],
+  [heroFeatureLabels[3], ShieldCheck]
+] as const;
 
 export function Hero() {
   return (
@@ -104,6 +112,9 @@ export function Hero() {
           >
             <Button href="#book-session" className="w-full sm:w-auto">
               Book a Healing Session <Leaf className="h-4 w-4" />
+            </Button>
+            <Button href="/soul-assessment" variant="secondary" className="w-full sm:w-auto">
+              Assessment <ClipboardList className="h-4 w-4" />
             </Button>
             <Button href="#services" variant="secondary" className="w-full sm:w-auto">
               Explore Our Services <ArrowRight className="h-4 w-4" />

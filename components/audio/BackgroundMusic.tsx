@@ -133,7 +133,7 @@ export function BackgroundMusic() {
 
   return (
     <>
-      <audio ref={audioRef} loop preload="auto" src="/audio/ambient.wav" className="hidden" aria-hidden />
+      <audio ref={audioRef} loop preload="none" src="/audio/ambient.wav" className="hidden" aria-hidden />
       {!isStudio ? (
         <button
           type="button"

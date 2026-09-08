@@ -8,7 +8,7 @@ import { instagramReels, youtubeVideos } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Container } from "@/components/layout/Container";
-import { VideosPetalDecor } from "@/components/decorations/Decorations";
+import { VideosPetalDecor } from "@/components/decorations/SideBotanicalBranch";
 
 function EmbedModal({
   label,
@@ -72,7 +72,7 @@ function VideoCard({
       )}
     >
       <Image
-        src={thumbnail ?? (wide ? "/images/family-constellation.png" : "/images/blossom-lanterns.png")}
+        src={thumbnail ?? (wide ? "/images/family-constellation.webp" : "/images/blossom-lanterns.webp")}
         alt=""
         width={520}
         height={300}

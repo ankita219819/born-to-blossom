@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { PractitionerPortrait, PractitionerSplitLayout } from "@/components/ui/PractitionerPortrait";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Container } from "@/components/layout/Container";
-import { AboutCherryBlossom } from "@/components/decorations/Decorations";
+import { AboutCherryBlossom } from "@/components/decorations/AboutCherryBlossom";
 
 export function About() {
   return (

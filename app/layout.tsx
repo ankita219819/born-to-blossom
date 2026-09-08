@@ -5,6 +5,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import {
   buildPageMetadata,
   localBusinessJsonLd,
+  SITE_ICONS,
   SITE_NAME,
   websiteJsonLd
 } from "@/lib/seo";
@@ -43,6 +44,7 @@ export const metadata: Metadata = {
     ]
   }),
   applicationName: SITE_NAME,
+  icons: SITE_ICONS,
   authors: [{ name: "Sonia Verma Bhattacharyya", url: "https://borntoblossom.in/about/founder" }],
   creator: "Sonia Verma Bhattacharyya",
   publisher: SITE_NAME,

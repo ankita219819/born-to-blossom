@@ -2,7 +2,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export const SITE_LOGO = {
-  src: "/images/logo.png",
+  src: "/images/logo.webp",
   width: 1024,
   height: 1024,
   alt: "Born to Blossom logo — a safe and nurturing space for healing emotions"

@@ -46,7 +46,7 @@ export function ServicesBranchDecor() {
         {...petalBranchSway}
       >
         <Image
-          src="/images/petal-left.png"
+          src="/images/petal-left.webp"
           alt=""
           width={1024}
           height={1536}
@@ -67,7 +67,7 @@ export function ServicesBranchDecor() {
         {...petalBranchSway}
       >
         <Image
-          src="/images/petal-right.png"
+          src="/images/petal-right.webp"
           alt=""
           width={1024}
           height={1536}
@@ -97,7 +97,7 @@ export function VideosPetalDecor() {
   return (
     <>
       <Image
-        src="/images/petals.png"
+        src="/images/petals.webp"
         alt=""
         width={480}
         height={960}
@@ -106,7 +106,7 @@ export function VideosPetalDecor() {
         className="pointer-events-none absolute -left-2 top-[58%] z-0 hidden h-auto w-[7.5rem] -translate-y-1/2 select-none opacity-90 md:block md:-left-6 md:w-[10rem] xl:-left-12 xl:w-[12.5rem] xl:opacity-100"
       />
       <Image
-        src="/images/petals.png"
+        src="/images/petals.webp"
         alt=""
         width={480}
         height={960}
@@ -115,19 +115,5 @@ export function VideosPetalDecor() {
         className="pointer-events-none absolute -right-2 top-[58%] z-0 hidden h-auto w-[7.5rem] -translate-y-1/2 scale-x-[-1] select-none opacity-90 md:block md:-right-6 md:w-[10rem] xl:-right-12 xl:w-[12.5rem] xl:opacity-100"
       />
     </>
-  );
-}
-
-export function FamilyBloomDecor() {
-  return (
-    <Image
-      src="/images/petal-right.png"
-      alt=""
-      width={100}
-      height={85}
-      loading="lazy"
-      aria-hidden
-      className="pointer-events-none absolute right-4 top-0 z-0 w-16 select-none object-contain opacity-50 md:hidden"
-    />
   );
 }

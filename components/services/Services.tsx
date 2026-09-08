@@ -10,7 +10,7 @@ import { fadeUp } from "@/lib/motion";
 import { Button } from "@/components/ui/Button";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Container } from "@/components/layout/Container";
-import { ServicesBranchDecor } from "@/components/decorations/Decorations";
+import { ServicesBranchDecor } from "@/components/decorations/SideBotanicalBranch";
 import { ServiceCard } from "@/components/services/ServiceCard";
 
 function CarouselNav({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {

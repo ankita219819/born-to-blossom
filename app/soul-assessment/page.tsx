@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/layout/Container";
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { SoulAssessment } from "@/components/assessment/SoulAssessment";
 import { buildPageMetadata, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/seo";
+
+const SoulAssessment = dynamic(
+  () => import("@/components/assessment/SoulAssessment").then((m) => m.SoulAssessment),
+  {
+    loading: () => (
+      <div className="mx-auto h-[420px] max-w-3xl animate-pulse rounded-[28px] border border-[#EFE5DA] bg-[#FFFDFC]" />
+    )
+  }
+);
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Soul Assessment — Free 25-Question Healing Diagnostic",
@@ -46,7 +55,7 @@ const assessmentJsonLd = {
     "@type": "Organization",
     name: SITE_NAME,
     url: SITE_URL,
-    logo: absoluteUrl("/images/logo.png")
+    logo: absoluteUrl("/images/logo.webp")
   }
 };
 

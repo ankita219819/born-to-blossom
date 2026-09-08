@@ -11,7 +11,7 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "Explore 20+ healing modalities in Gurgaon and online — Reiki, Family Constellation, Humkaara, Hleem, QBR, Sound Healing, RESTORE, corporate wellness, and more.",
   path: "/services",
-  image: "/images/spiritual_healing.png",
+  image: "/images/spiritual_healing.webp",
   keywords: [
     "healing services Gurgaon",
     "Reiki",

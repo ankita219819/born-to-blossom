@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/layout/Container";
 import { PractitionerPortrait, PractitionerSplitLayout } from "@/components/ui/PractitionerPortrait";
 import { Section, SectionHeading } from "@/components/ui/Section";
-import { AboutCherryBlossom } from "@/components/decorations/Decorations";
+import { AboutCherryBlossom } from "@/components/decorations/AboutCherryBlossom";
 
 export function FounderPageView() {
   return (

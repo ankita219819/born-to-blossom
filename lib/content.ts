@@ -1,10 +1,3 @@
-import {
-  Flower2,
-  Globe2,
-  ShieldCheck,
-  Sparkles
-} from "lucide-react";
-
 export const navItems = [
   "Home",
   "About",
@@ -17,11 +10,21 @@ export const navItems = [
   "Book"
 ] as const;
 
-export const heroFeatures = [
-  ["20+ Modalities", Sparkles],
-  ["Ancient Wisdom", Flower2],
-  ["In-Person & Online", Globe2],
-  ["Safe & Confidential", ShieldCheck]
+/** Labels only — icons live in Hero to keep this module free of lucide. */
+export const heroFeatureLabels = [
+  "20+ Modalities",
+  "Ancient Wisdom",
+  "In-Person & Online",
+  "Safe & Confidential"
+] as const;
+
+export const footerServices = [
+  { label: "Family Constellation Therapy", slug: "family-constellation-therapy" },
+  { label: "Reiki Healing", slug: "reiki-healing" },
+  { label: "Humkaara", slug: "Humkaara" },
+  { label: "Hleem", slug: "hleem" },
+  { label: "RESTORE", slug: "restore" },
+  { label: "Corporate Wellness", slug: "corporate-wellness" }
 ] as const;
 
 export const aboutTitle = "A Soul Who Has Walked This Path Before You";
@@ -152,13 +155,4 @@ export const footerQuickLinks = [
   "Blog",
   "Book",
   "Contact"
-] as const;
-
-export const footerServices = [
-  "Family Constellation Therapy",
-  "Reiki Healing",
-  "Humkaara",
-  "Hleem",
-  "RESTORE",
-  "Corporate Wellness"
 ] as const;
