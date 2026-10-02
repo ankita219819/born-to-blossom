@@ -1,805 +1,197 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
-  Check,
+  BarChart3,
   Clock3,
+  Compass,
   Flower2,
-  Leaf,
+  HeartHandshake,
   Lock,
-  Printer,
-  RotateCcw,
-  Sparkles
+  Mail,
+  Radar,
+  Sparkles,
+  Timer
 } from "lucide-react";
 import { Container } from "@/components/layout/Container";
-import { Button } from "@/components/ui/Button";
-import { contactInfo } from "@/lib/content";
-import { dimensions, questions, type OptionId } from "@/lib/assessment-data";
 import {
-  answeredCount,
-  scoreAssessment,
-  type AnswerMap,
-  type PrescribedModality
-} from "@/lib/assessment-engine";
-import { cn } from "@/lib/utils";
+  AssessmentDialog,
+  loadAssessmentState
+} from "@/components/assessment/AssessmentDialog";
+import { answeredCount, isComplete } from "@/lib/assessment-engine";
+import { chakras, disclaimer, domains } from "@/lib/assessment-data";
 
-const STORAGE_KEY = "btb-soul-assessment-v1";
-
-type Stage = "intro" | "quiz" | "result";
-
-type SavedState = {
-  name: string;
-  answers: AnswerMap;
-  stage: Stage;
-  step: number;
-  updatedAt: string;
-};
-
-function loadState(): SavedState | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SavedState;
-    if (!parsed || typeof parsed !== "object" || !parsed.answers) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveState(state: SavedState) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    /* storage unavailable (private mode) — the assessment still works in-session */
-  }
-}
-
-const tierCopy: Record<PrescribedModality["tier"], { label: string; className: string }> = {
-  primary: {
-    label: "Primary",
-    className: "bg-[#365A43] text-white"
-  },
-  support: {
-    label: "Secondary layer",
-    className: "bg-[#E8F2EA] text-[#365A43]"
-  },
-  indicated: {
-    label: "Also indicated",
-    className: "bg-[#FCECEF] text-[#A8695A]"
-  }
-};
-
-/* ── Shared bits ─────────────────────────────────────────────────────── */
-
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="eyebrow mb-4">{children}</p>;
-}
-
-function Meter({ label, share, numeral }: { label: string; share: number; numeral: string }) {
-  const percent = Math.round(share * 100);
-  return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-[0.9rem] font-medium text-[#2E2925]">
-          <span className="mr-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#C69C6D]">
-            {numeral}
-          </span>
-          {label}
-        </p>
-        <p className="text-[0.8rem] font-semibold tabular-nums text-[#6F6258]">{percent}%</p>
-      </div>
-      <div className="mt-2 h-[7px] w-full overflow-hidden rounded-full bg-[#EFE5DA]">
-        <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-[#365A43] to-[#7FA98B]"
-          initial={{ width: 0 }}
-          animate={{ width: `${percent}%` }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ── Component ───────────────────────────────────────────────────────── */
-
-function resolveQuestionStep(savedAnswers: AnswerMap, savedStep = 0) {
-  const answeredKeys = Object.keys(savedAnswers).length;
-  if (answeredKeys === 0) {
-    return Math.min(Math.max(savedStep, 0), questions.length - 1);
-  }
-
-  const firstUnanswered = questions.findIndex((question) => !savedAnswers[question.id]);
-  return firstUnanswered >= 0 ? firstUnanswered : questions.length - 1;
-}
+const receives = [
+  { icon: Sparkles, title: "Overall Soul Alignment Score", copy: "One percentage — a weather report for your inner world, not a verdict." },
+  { icon: Radar, title: "Soul Family Wheel", copy: "All seven life areas plotted on one chart, so you see your unique shape at a glance." },
+  { icon: Flower2, title: "Chakra Balance Map", copy: "Your seven energy centres, and the organs linked to each." },
+  { icon: Compass, title: "S.O.S. Priority Area", copy: "The one area quietly asking for the most care right now." },
+  { icon: Timer, title: "Healing Timeline", copy: "A realistic, encouraging estimate of how long focused work tends to take." },
+  { icon: BarChart3, title: "Your Soul Profile", copy: "An affirming description of your pattern, including your natural strengths." },
+  { icon: Mail, title: "A Personal Letter", copy: "Addressed to you by name and signed by Sonia and the Born to Blossom team." },
+  { icon: HeartHandshake, title: "Your Recommended Next Step", copy: "The one modality most likely to help you next — not a list of twenty." }
+];
 
 export function SoulAssessment() {
-  const [hydrated, setHydrated] = useState(false);
-  const [stage, setStage] = useState<Stage>("intro");
-  const [step, setStep] = useState(0);
-  const [navDirection, setNavDirection] = useState<1 | -1>(1);
-  const [name, setName] = useState("");
-  const [answers, setAnswers] = useState<AnswerMap>({});
-  const [showIncomplete, setShowIncomplete] = useState(false);
-  const topRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [progress, setProgress] = useState<{ answered: number; complete: boolean }>({
+    answered: 0,
+    complete: false
+  });
+  const openerRef = useRef<HTMLElement | null>(null);
+
+  const refreshProgress = useCallback(() => {
+    const saved = loadAssessmentState();
+    setProgress({
+      answered: saved ? answeredCount(saved.answers) : 0,
+      complete: saved ? isComplete(saved.answers) : false
+    });
+  }, []);
+
+  const openDialog = useCallback(() => {
+    openerRef.current = document.activeElement as HTMLElement | null;
+    setOpen(true);
+  }, []);
+
+  const closeDialog = useCallback(() => {
+    setOpen(false);
+    refreshProgress();
+    requestAnimationFrame(() => openerRef.current?.focus?.());
+  }, [refreshProgress]);
 
   useEffect(() => {
-    const saved = loadState();
-    if (saved) {
-      const nextAnswers = saved.answers ?? {};
-      setName(saved.name ?? "");
-      setAnswers(nextAnswers);
-      if (saved.stage === "result") setStage("intro");
-      setStep(resolveQuestionStep(nextAnswers, saved.step ?? 0));
+    refreshProgress();
+    if (new URLSearchParams(window.location.search).get("start") === "1") {
+      setOpen(true);
     }
-    setHydrated(true);
-  }, []);
+  }, [refreshProgress]);
 
-  const persist = useCallback(
-    (next: Partial<SavedState>) => {
-      saveState({
-        name,
-        answers,
-        stage,
-        step,
-        updatedAt: new Date().toISOString(),
-        ...next
-      });
-    },
-    [answers, name, stage, step]
-  );
-
-  const answered = answeredCount(answers);
-  const question = questions[step];
-  const dimension = dimensions.find((item) => item.id === question?.dimension);
-  const progress = Math.round(((step + 1) / questions.length) * 100);
-  const result = useMemo(
-    () => (stage === "result" ? scoreAssessment(answers) : null),
-    [answers, stage]
-  );
-
-  const scrollToTop = useCallback(() => {
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  function choose(questionId: number, optionId: OptionId) {
-    const next = { ...answers, [questionId]: optionId };
-    setAnswers(next);
-    setShowIncomplete(false);
-    persist({ answers: next });
-  }
-
-  function begin(resume: boolean) {
-    const nextAnswers = resume ? answers : {};
-    const nextStep = resume ? resolveQuestionStep(answers, step) : 0;
-    if (!resume) setAnswers({});
-    setStep(nextStep);
-    setNavDirection(1);
-    setStage("quiz");
-    persist({ answers: nextAnswers, step: nextStep, stage: "quiz" });
-    requestAnimationFrame(scrollToTop);
-  }
-
-  function goNext() {
-    if (!question || !answers[question.id]) {
-      setShowIncomplete(true);
-      return;
-    }
-
-    setNavDirection(1);
-    setShowIncomplete(false);
-
-    if (step < questions.length - 1) {
-      const nextStep = step + 1;
-      setStep(nextStep);
-      persist({ step: nextStep });
-    } else {
-      setStage("result");
-      persist({ stage: "result" });
-    }
-    requestAnimationFrame(scrollToTop);
-  }
-
-  function goBack() {
-    setNavDirection(-1);
-    setShowIncomplete(false);
-
-    if (step === 0) {
-      setStage("intro");
-      persist({ stage: "intro" });
-    } else {
-      const nextStep = step - 1;
-      setStep(nextStep);
-      persist({ step: nextStep });
-    }
-    requestAnimationFrame(scrollToTop);
-  }
-
-  function restart() {
-    setAnswers({});
-    setStep(0);
-    setNavDirection(1);
-    setStage("intro");
-    saveState({ name, answers: {}, stage: "intro", step: 0, updatedAt: new Date().toISOString() });
-    requestAnimationFrame(scrollToTop);
-  }
-
-  const whatsappHref = result
-    ? `https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-        `Namaste. I completed the Soul Assessment on borntoblossom.in.\n\nName: ${
-          name || "—"
-        }\nPrimary Soul Profile: ${result.primary.title}\nSecondary Layer: ${
-          result.secondary.title
-        }\n\nI would like to book a discovery call.`
-      )}`
-    : "#";
+  const ctaLabel = progress.complete
+    ? "View my Prescription"
+    : progress.answered > 0
+      ? `Continue — ${progress.answered}/37 answered`
+      : "Begin the assessment";
 
   return (
-    <div ref={topRef} className="scroll-mt-28">
-      {!hydrated ? (
-        <Container className="section-pad section-pad-end">
-          <div className="mx-auto h-[420px] max-w-3xl animate-pulse rounded-[28px] border border-[#EFE5DA] bg-[#FFFDFC]" />
-        </Container>
-      ) : (
-        <AnimatePresence mode="wait">
-          {stage === "intro" ? (
-            <motion.div
-              key="intro"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
-            >
-              <IntroView
-                name={name}
-                onNameChange={(value) => {
-                  setName(value);
-                  persist({ name: value });
-                }}
-                answered={answered}
-                onStart={begin}
-              />
-            </motion.div>
-          ) : null}
-
-          {stage === "quiz" && question && dimension ? (
-            <motion.div
-              key="quiz"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              <Container className="pb-16 pt-6 md:pb-24 md:pt-10">
-                <div className="mx-auto max-w-2xl">
-                  <div className="mb-4 flex items-end justify-between gap-4 px-1">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#C69C6D]">
-                      {dimension.shortTitle}
-                    </p>
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[#9A8D82]">
-                      Question {step + 1} of {questions.length}
-                    </p>
-                  </div>
-
-                  <div className="mb-6 h-[6px] w-full overflow-hidden rounded-full bg-[#EFE5DA]">
-                    <motion.div
-                      className="h-full rounded-full bg-[#365A43]"
-                      animate={{ width: `${progress}%` }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
-                    />
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={question.id}
-                      initial={{ opacity: 0, x: navDirection * 48 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: navDirection * -48 }}
-                      transition={{ duration: 0.32, ease: "easeOut" }}
-                      className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-5 shadow-[0_16px_40px_rgba(30,20,10,0.06)] md:rounded-[28px] md:p-8"
-                    >
-                      <p className="font-display text-[0.95rem] tracking-[0.02em] text-[#C69C6D]">
-                        Question {step + 1}
-                      </p>
-                      <h2 className="mt-3 font-display text-[1.45rem] font-medium leading-[1.25] tracking-[-0.02em] text-[#2E2925] md:text-[1.75rem]">
-                        {question.prompt}
-                      </h2>
-                      <p className="mt-2 text-[0.875rem] italic leading-[1.6] text-[#9A8D82]">
-                        Choose the response that resonates most.
-                      </p>
-
-                      <fieldset className="mt-6">
-                        <legend className="sr-only">{question.prompt}</legend>
-                        <div className="grid gap-2.5">
-                          {question.options.map((option) => {
-                            const selected = answers[question.id] === option.id;
-                            return (
-                              <label
-                                key={option.id}
-                                className={cn(
-                                  "group flex cursor-pointer items-start gap-3 rounded-[16px] border p-3.5 transition-all duration-200 md:gap-4 md:p-4",
-                                  selected
-                                    ? "border-[#365A43] bg-[#E8F2EA] shadow-[0_8px_20px_rgba(54,90,67,0.12)]"
-                                    : "border-[#EFE5DA] bg-[#FCF8F3] hover:border-[#C69C6D] hover:bg-[#F8F3ED]"
-                                )}
-                              >
-                                <input
-                                  type="radio"
-                                  name={`question-${question.id}`}
-                                  value={option.id}
-                                  checked={selected}
-                                  onChange={() => choose(question.id, option.id)}
-                                  className="sr-only"
-                                />
-                                <span
-                                  aria-hidden
-                                  className={cn(
-                                    "mt-[1px] grid h-7 w-7 shrink-0 place-items-center rounded-[7px] border text-[0.75rem] font-semibold transition",
-                                    selected
-                                      ? "border-[#365A43] bg-[#365A43] text-white"
-                                      : "border-[#DCCDBE] bg-white text-[#9A8D82] group-hover:border-[#C69C6D]"
-                                  )}
-                                >
-                                  {selected ? <Check className="h-4 w-4" /> : option.id}
-                                </span>
-                                <span
-                                  className={cn(
-                                    "text-[0.9375rem] leading-[1.65] md:text-[0.975rem]",
-                                    selected ? "text-[#2E2925]" : "text-[#6F6258]"
-                                  )}
-                                >
-                                  {option.text}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </fieldset>
-
-                      {showIncomplete && !answers[question.id] ? (
-                        <p className="mt-4 text-[0.82rem] font-medium text-[#B4635A]">
-                          Please choose the response that resonates most.
-                        </p>
-                      ) : null}
-
-                      <div className="mt-8 flex items-center justify-between gap-3">
-                        <button
-                          type="button"
-                          onClick={goBack}
-                          className="inline-flex h-[48px] items-center justify-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-5 text-[0.9rem] font-semibold text-[#365A43] transition hover:border-[#365A43] md:h-[52px] md:px-6"
-                        >
-                          <ArrowLeft className="h-4 w-4" />
-                          Back
-                        </button>
-                        <Button onClick={goNext} className="h-[48px] min-w-[9.5rem] md:h-[52px]">
-                          {step === questions.length - 1 ? "Reveal result" : "Next"}
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-
-                  <p className="mt-6 flex items-center justify-center gap-2 text-center text-[0.78rem] text-[#9A8D82]">
-                    <Lock className="h-3.5 w-3.5" />
-                    Your answers are saved only on this device. Nothing is transmitted.
-                  </p>
-                </div>
-              </Container>
-            </motion.div>
-          ) : null}
-
-          {stage === "result" && result ? (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              <ResultView
-                name={name}
-                result={result}
-                whatsappHref={whatsappHref}
-                onRestart={restart}
-                onReview={() => {
-                  setStage("quiz");
-                  setStep(0);
-                  setNavDirection(1);
-                  persist({ stage: "quiz", step: 0 });
-                  requestAnimationFrame(scrollToTop);
-                }}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      )}
-    </div>
-  );
-}
-
-/* ── Intro ───────────────────────────────────────────────────────────── */
-
-function IntroView({
-  name,
-  onNameChange,
-  answered,
-  onStart
-}: {
-  name: string;
-  onNameChange: (value: string) => void;
-  answered: number;
-  onStart: (resume: boolean) => void;
-}) {
-  return (
-    <Container className="pb-16 pt-6 md:pb-24 md:pt-10">
-      <div className="mx-auto max-w-4xl">
-        <div className="relative overflow-hidden rounded-[28px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_24px_70px_rgba(54,90,67,0.12)] md:rounded-[36px] md:p-12">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#FCECEF] blur-3xl"
-          />
-          <div className="relative">
-            <Eyebrow>Lasoma Soul Family Assessment</Eyebrow>
-            <h1 className="font-display text-[2.1rem] font-medium leading-[1.1] tracking-[-0.04em] text-[#2E2925] md:text-[3rem] xl:text-[3.5rem]">
-              A compassionate mirror for your inner world
-            </h1>
-            <p className="mt-5 text-[1rem] leading-[1.85] text-[#6F6258] md:mt-6 md:text-[1.0625rem]">
-              Twenty-five intuitive questions across the five fundamental dimensions of human
-              experience — body, heart, subconscious mind, ancestral lineage, and soul purpose.
-              There are no right or wrong answers. Choose the option that most deeply resonates
-              with your current reality, and your personalised Prescription of Soul Journey appears
-              the moment you finish.
-            </p>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {[
-                [Clock3, "10–12 minutes", "25 questions, five dimensions"],
-                [Sparkles, "Instant result", "Your prescription renders immediately"],
-                [Lock, "Private by design", "Saved on your device only"]
-              ].map(([Icon, title, copy]) => {
-                const IconComponent = Icon as typeof Clock3;
-                return (
-                  <div
-                    key={title as string}
-                    className="rounded-[18px] border border-[#EFE5DA] bg-[#FCF8F3] p-4"
-                  >
-                    <IconComponent className="h-5 w-5 text-[#365A43]" />
-                    <p className="mt-3 text-[0.9375rem] font-semibold text-[#2E2925]">
-                      {title as string}
-                    </p>
-                    <p className="mt-1 text-[0.82rem] leading-[1.6] text-[#6F6258]">
-                      {copy as string}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-8 md:mt-10">
-              <label
-                htmlFor="assessment-name"
-                className="block text-[0.82rem] font-semibold uppercase tracking-[0.12em] text-[#9A8D82]"
-              >
-                Your name (optional)
-              </label>
-              <input
-                id="assessment-name"
-                type="text"
-                value={name}
-                onChange={(event) => onNameChange(event.target.value)}
-                placeholder="So your prescription can be addressed to you"
-                autoComplete="given-name"
-                className="mt-2 h-[54px] w-full rounded-[14px] border border-[#EFE5DA] bg-[#FCF8F3] px-4 text-[0.975rem] text-[#2E2925] outline-none transition placeholder:text-[#B6AA9F] focus:border-[#365A43] focus:bg-white"
-              />
-            </div>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button onClick={() => onStart(false)} className="w-full sm:w-auto">
-                {answered > 0 ? "Start fresh" : "Begin the assessment"}
-                <Flower2 className="h-4 w-4" />
-              </Button>
-              {answered > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => onStart(true)}
-                  className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-6 text-[0.9375rem] font-semibold text-[#365A43] transition hover:-translate-y-0.5 hover:border-[#365A43] md:h-[56px]"
-                >
-                  Resume — {answered}/{questions.length} answered
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-3 md:mt-10 md:grid-cols-5">
-          {dimensions.map((dimension) => (
+    <>
+      <Container className="pb-16 pt-6 md:pb-24 md:pt-10">
+        <div className="mx-auto max-w-4xl">
+          {/* Intro */}
+          <div className="relative overflow-hidden rounded-[28px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_24px_70px_rgba(54,90,67,0.12)] md:rounded-[36px] md:p-12">
             <div
-              key={dimension.id}
-              className="rounded-[18px] border border-[#EFE5DA] bg-[#FFFDFC] p-4 md:p-5"
-            >
-              <p className="font-display text-[1.4rem] text-[#C69C6D]">{dimension.numeral}</p>
-              <p className="mt-1 text-[0.9rem] font-semibold leading-[1.4] text-[#2E2925]">
-                {dimension.shortTitle}
-              </p>
-              <p className="mt-2 text-[0.78rem] leading-[1.6] text-[#9A8D82]">
-                Questions {dimension.questionIds[0]}–
-                {dimension.questionIds[dimension.questionIds.length - 1]}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Container>
-  );
-}
-
-/* ── Result ──────────────────────────────────────────────────────────── */
-
-function ResultView({
-  name,
-  result,
-  whatsappHref,
-  onRestart,
-  onReview
-}: {
-  name: string;
-  result: NonNullable<ReturnType<typeof scoreAssessment>>;
-  whatsappHref: string;
-  onRestart: () => void;
-  onReview: () => void;
-}) {
-  const date = new Date(result.generatedAt).toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric"
-  });
-
-  return (
-    <Container className="pb-16 pt-6 md:pb-24 md:pt-10">
-      <div className="mx-auto max-w-5xl" id="soul-prescription">
-        {/* Header */}
-        <div className="relative overflow-hidden rounded-[28px] border border-[#EFE5DA] bg-gradient-to-br from-[#365A43] to-[#2D4B37] p-6 text-white shadow-[0_24px_70px_rgba(54,90,67,0.22)] md:rounded-[36px] md:p-12">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl"
-          />
-          <div className="relative">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[#E8CFAE]">
-              Prescription of Soul Journey, Soul Growth &amp; Soul Awakening
-            </p>
-            <h1 className="mt-4 font-display text-[2.1rem] font-medium leading-[1.1] tracking-[-0.03em] md:text-[3.1rem]">
-              {result.primary.title}
-            </h1>
-            <p className="mt-4 max-w-2xl text-[1rem] leading-[1.85] text-white/85 md:text-[1.0625rem]">
-              {result.primary.essence}
-            </p>
-
-            <dl className="mt-8 grid gap-4 border-t border-white/15 pt-6 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                ["Prepared for", name || "Beloved soul"],
-                ["Date of assessment", date],
-                ["Secondary layer", result.secondary.title],
-                ["Lead dimension", result.leadDimension.shortTitle]
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <dt className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[#E8CFAE]">
-                    {label}
-                  </dt>
-                  <dd className="mt-1.5 text-[0.95rem] font-medium leading-[1.5]">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-6 md:mt-8 lg:grid-cols-[1.55fr_1fr]">
-          {/* Left column */}
-          <div className="grid gap-6">
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:rounded-[28px] md:p-8">
-              <Eyebrow>1 · Your soul landscape diagnosis</Eyebrow>
-              <p className="text-[1rem] leading-[1.85] text-[#6F6258] md:text-[1.0625rem]">
-                Your responses cluster most densely in{" "}
-                <strong className="font-semibold text-[#2E2925]">
-                  {result.leadDimension.title}
-                </strong>
-                , which places your primary blueprint as{" "}
-                <strong className="font-semibold text-[#2E2925]">{result.primary.title}</strong>.
-                Beneath it runs a secondary layer of{" "}
-                <strong className="font-semibold text-[#2E2925]">{result.secondary.title}</strong> —
-                the pattern that will surface once the first layer softens.
-              </p>
-              <p className="mt-4 text-[1rem] leading-[1.85] text-[#6F6258] md:text-[1.0625rem]">
-                {result.primary.rootMechanism} This is not a character flaw and it is not
-                permanent. It is a mechanism — and mechanisms respond to the right sequence of
-                work, applied in the right order.
+              aria-hidden
+              className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#FCECEF] blur-3xl"
+            />
+            <div className="relative">
+              <p className="eyebrow mb-4">The Lasoma Soul Family Assessment</p>
+              <h1 className="font-display text-[2.1rem] font-medium leading-[1.1] tracking-[-0.04em] text-[#2E2925] md:text-[3rem] xl:text-[3.5rem]">
+                Heal. Release. Reclaim. Blossom.
+              </h1>
+              <p className="mt-5 text-[1rem] leading-[1.85] text-[#6F6258] md:mt-6 md:text-[1.0625rem]">
+                A soul-family self-assessment across body, mind, money, relationships, ancestry, career and spirit —
+                with a personalised Prescription of Soul Journey. There are no right or wrong answers; simply pick the
+                option that feels closest to true for you, right now.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
-                {result.primary.manifestation.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[#EFE5DA] bg-[#FCF8F3] px-3.5 py-1.5 text-[0.8rem] font-medium text-[#6F6258]"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:rounded-[28px] md:p-8">
-              <Eyebrow>2 · Prescribed healing modalities</Eyebrow>
-              <div className="grid gap-3">
-                {result.prescription.map((modality) => (
-                  <Link
-                    key={modality.key}
-                    href={`/services/${modality.key}`}
-                    className="group flex flex-col gap-2 rounded-[18px] border border-[#EFE5DA] bg-[#FCF8F3] p-4 transition hover:-translate-y-0.5 hover:border-[#365A43] hover:bg-white md:p-5"
-                  >
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <span
-                        className={cn(
-                          "rounded-full px-2.5 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.1em]",
-                          tierCopy[modality.tier].className
-                        )}
-                      >
-                        {tierCopy[modality.tier].label}
-                      </span>
-                      <span className="text-[0.72rem] font-medium uppercase tracking-[0.1em] text-[#9A8D82]">
-                        {modality.category}
-                      </span>
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                {[
+                  [Clock3, "15–20 minutes", "37 questions, one at a time"],
+                  [Sparkles, "Instant result", "Your prescription appears the moment you finish"],
+                  [Lock, "Private by design", "Saved on your device only"]
+                ].map(([Icon, title, copy]) => {
+                  const IconComponent = Icon as typeof Clock3;
+                  return (
+                    <div key={title as string} className="rounded-[18px] border border-[#EFE5DA] bg-[#FCF8F3] p-4">
+                      <IconComponent className="h-5 w-5 text-[#365A43]" />
+                      <p className="mt-2 text-[0.95rem] font-semibold text-[#2E2925]">{title as string}</p>
+                      <p className="mt-1 text-[0.82rem] leading-[1.6] text-[#6F6258]">{copy as string}</p>
                     </div>
-                    <p className="font-display text-[1.25rem] leading-tight text-[#2E2925] transition group-hover:text-[#365A43] md:text-[1.4rem]">
-                      {modality.name}
-                    </p>
-                    <p className="text-[0.9rem] leading-[1.7] text-[#6F6258]">
-                      {modality.mechanism}
-                    </p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.82rem] font-semibold text-[#365A43]">
-                      <span>Dosage · {modality.dosage}</span>
-                      <span className="font-medium text-[#9A8D82]">{modality.format}</span>
-                      <span className="inline-flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-                        Explore <ArrowRight className="h-3.5 w-3.5" />
-                      </span>
-                    </p>
-                  </Link>
-                ))}
+                  );
+                })}
               </div>
-            </section>
 
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:rounded-[28px] md:p-8">
-              <Eyebrow>3 · Your customised session sequencing arc</Eyebrow>
-              <ol className="relative grid gap-6 border-l border-[#EFE5DA] pl-6">
-                {result.arc.map((phase) => (
-                  <li key={phase.phase} className="relative">
-                    <span
-                      aria-hidden
-                      className="absolute -left-[31px] top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full border-2 border-[#365A43] bg-[#FCF8F3]"
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#365A43]" />
-                    </span>
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.13em] text-[#C69C6D]">
-                      {phase.phase}
-                    </p>
-                    <p className="mt-1.5 text-[0.975rem] leading-[1.7] text-[#2E2925]">
-                      {phase.focus}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          </div>
-
-          {/* Right column */}
-          <div className="grid content-start gap-6">
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:rounded-[28px] md:p-7">
-              <Eyebrow>Your five dimensions</Eyebrow>
-              <div className="grid gap-4">
-                {result.dimensionScores.map((dimensionScore) => (
-                  <Meter
-                    key={dimensionScore.id}
-                    label={dimensionScore.shortTitle}
-                    numeral={dimensionScore.numeral}
-                    share={dimensionScore.share}
-                  />
-                ))}
-              </div>
-              <p className="mt-5 text-[0.82rem] leading-[1.7] text-[#9A8D82]">
-                Density across your responses, not a score. A higher band simply means that plane
-                is speaking loudest right now.
-              </p>
-            </section>
-
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#E8F2EA] p-6 md:rounded-[28px] md:p-7">
-              <Eyebrow>4 · Daily soul integration toolkit</Eyebrow>
-              <ul className="grid gap-3">
-                {result.dailyTools.map((tool) => (
-                  <li key={tool} className="flex gap-3 text-[0.9375rem] leading-[1.7] text-[#2E2925]">
-                    <Leaf className="mt-1 h-4 w-4 shrink-0 text-[#365A43]" />
-                    <span>{tool}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className="rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 md:rounded-[28px] md:p-7">
-              <Eyebrow>Secondary layer</Eyebrow>
-              <p className="font-display text-[1.4rem] leading-tight text-[#2E2925]">
-                {result.secondary.title}
-              </p>
-              <p className="mt-3 text-[0.9rem] leading-[1.75] text-[#6F6258]">
-                {result.secondary.essence}
-              </p>
-            </section>
-
-            <section className="rounded-[24px] border border-[#E8CFAE] bg-[#FCF8F3] p-6 text-center md:rounded-[28px] md:p-7">
-              <p className="font-display text-[1.25rem] italic leading-[1.5] text-[#365A43] md:text-[1.4rem]">
-                “{result.primary.mantra}”
-              </p>
-              <p className="mt-4 text-[0.8rem] uppercase tracking-[0.14em] text-[#9A8D82]">
-                Blessing &amp; sacred dedication
-              </p>
-            </section>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="mt-6 rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 shadow-[0_10px_30px_rgba(30,20,10,0.05)] md:mt-8 md:rounded-[28px] md:p-10">
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-            <div>
-              <h2 className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.03em] text-[#2E2925] md:text-[2.25rem]">
-                Walk this prescription with a guide
-              </h2>
-              <p className="mt-3 text-[0.975rem] leading-[1.8] text-[#6F6258] md:text-[1rem]">
-                This reading is a compassionate map, not a medical diagnosis. In a discovery call,
-                Sonia refines it into your exact session sequence — and confirms where to begin.
-              </p>
-            </div>
-            <div className="grid gap-3">
-              <Button href="/#book-session" className="w-full">
-                Book a discovery call <Leaf className="h-4 w-4" />
-              </Button>
-              <Button
-                href={whatsappHref}
-                variant="secondary"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full"
+              <button
+                type="button"
+                onClick={openDialog}
+                className="button-ripple mt-8 inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full bg-[#365A43] px-8 text-[1rem] font-semibold text-white shadow-[0_12px_28px_rgba(54,90,67,0.22)] transition hover:-translate-y-0.5 hover:bg-[#2D4B37] focus:outline-none focus:ring-2 focus:ring-[#365A43] focus:ring-offset-2 sm:w-auto"
               >
-                Send my result on WhatsApp
-              </Button>
+                <span className="relative z-10 inline-flex items-center gap-2">
+                  {ctaLabel} <ArrowRight className="h-4 w-4" />
+                </span>
+              </button>
+              <p className="mt-4 text-[0.78rem] leading-[1.7] text-[#9A8D82]">{disclaimer}</p>
             </div>
           </div>
 
-          <div className="mt-7 flex flex-wrap gap-3 border-t border-[#EFE5DA] pt-6 print:hidden">
+          {/* Where this comes from */}
+          <section className="mt-6 rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 md:mt-8 md:rounded-[28px] md:p-9">
+            <p className="eyebrow mb-3">Where this comes from</p>
+            <p className="text-[0.975rem] leading-[1.85] text-[#6F6258] md:text-[1rem]">
+              This assessment is built on well-known mind-body research and the ancient wisdom of the chakra system,
+              woven together. It draws on ideas from <em>The Body Keeps the Score</em> (how the body stores what the
+              mind can&apos;t always express), <em>It Didn&apos;t Start With You</em> (how family patterns pass down
+              through generations), and the seven-chakra tradition — which teaches that specific life themes and even
+              specific organs are connected to specific energy centres in the body.
+            </p>
+          </section>
+
+          {/* Seven areas + chakras */}
+          <section className="mt-6 rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 md:mt-8 md:rounded-[28px] md:p-9">
+            <p className="eyebrow mb-3">Seven soul-family areas</p>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {domains.map((domain) => (
+                <li key={domain.id} className="flex gap-3 rounded-[18px] border border-[#EFE5DA] bg-[#FCF8F3] p-4">
+                  <span aria-hidden className="text-[1.4rem] leading-none">
+                    {domain.emoji}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[0.95rem] font-semibold text-[#2E2925]">{domain.name}</span>
+                    <span className="mt-0.5 block text-[0.82rem] leading-[1.6] text-[#6F6258]">{domain.blurb}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-5 text-[0.9rem] leading-[1.8] text-[#6F6258]">
+              Followed by a short <strong className="font-semibold text-[#365A43]">Chakra &amp; Body Wisdom</strong>{" "}
+              section — {chakras.length} questions that ask you to sense into your body directly, from Root to Crown.
+            </p>
+          </section>
+
+          {/* What you receive */}
+          <section className="mt-6 rounded-[24px] border border-[#EFE5DA] bg-[#FFFDFC] p-6 md:mt-8 md:rounded-[28px] md:p-9">
+            <p className="eyebrow mb-3">What you&apos;ll receive</p>
+            <h2 className="font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.03em] text-[#2E2925] md:text-[2.25rem]">
+              Your Prescription of Soul Journey
+            </h2>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+              {receives.map(({ icon: Icon, title, copy }, index) => (
+                <li key={title} className="flex gap-3.5 rounded-[18px] border border-[#EFE5DA] bg-[#FCF8F3] p-4">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#E8F2EA] text-[#365A43]">
+                    <Icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[0.95rem] font-semibold text-[#2E2925]">
+                      <span className="mr-1.5 text-[0.72rem] tabular-nums text-[#C69C6D]">{index + 1}.</span>
+                      {title}
+                    </span>
+                    <span className="mt-0.5 block text-[0.82rem] leading-[1.6] text-[#6F6258]">{copy}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
             <button
               type="button"
-              onClick={() => window.print()}
-              className="inline-flex h-[46px] items-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-5 text-[0.875rem] font-semibold text-[#365A43] transition hover:border-[#365A43]"
+              onClick={openDialog}
+              className="mt-7 inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-7 text-[0.95rem] font-semibold text-[#365A43] transition hover:-translate-y-0.5 hover:border-[#365A43] focus:outline-none focus:ring-2 focus:ring-[#365A43] focus:ring-offset-2 sm:w-auto"
             >
-              <Printer className="h-4 w-4" /> Save as PDF
+              {ctaLabel} <ArrowRight className="h-4 w-4" />
             </button>
-            <button
-              type="button"
-              onClick={onReview}
-              className="inline-flex h-[46px] items-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-5 text-[0.875rem] font-semibold text-[#365A43] transition hover:border-[#365A43]"
-            >
-              <ArrowLeft className="h-4 w-4" /> Review my answers
-            </button>
-            <button
-              type="button"
-              onClick={onRestart}
-              className="inline-flex h-[46px] items-center gap-2 rounded-full border border-[#DCCDBE] bg-white px-5 text-[0.875rem] font-semibold text-[#9A8D82] transition hover:border-[#C79072] hover:text-[#C79072]"
-            >
-              <RotateCcw className="h-4 w-4" /> Start over
-            </button>
-          </div>
+          </section>
         </div>
-      </div>
-    </Container>
+      </Container>
+
+      {open && <AssessmentDialog onClose={closeDialog} />}
+    </>
   );
 }

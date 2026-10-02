@@ -17,9 +17,9 @@ const SoulAssessment = dynamic(
 );
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Soul Assessment — Free 25-Question Healing Diagnostic",
+  title: "Soul Assessment — Free 37-Question Healing Diagnostic",
   description:
-    "Take the free Lasoma Soul Family Assessment: 25 questions across body, heart, subconscious mind, ancestral lineage, and soul purpose. Receive an instant personalised Prescription of Soul Journey with your primary soul profile and recommended healing modalities.",
+    "Take the free Lasoma Soul Family Assessment: 37 questions across mind, body, money, relationships, ancestry, career, spirit and your chakra map. Receive an instant personalised Prescription of Soul Journey with your soul profile, healing timeline, personal letter and recommended next step.",
   path: "/soul-assessment",
   keywords: [
     "soul assessment",
@@ -43,7 +43,7 @@ const assessmentJsonLd = {
   operatingSystem: "Any modern web browser",
   browserRequirements: "Requires JavaScript",
   description:
-    "A 25-question self-assessment across five dimensions — physical and somatic, emotional and heart, subconscious mind, ancestral lineage, and sacred feminine and soul purpose — that instantly generates a personalised healing modality prescription.",
+    "A 37-question self-assessment across seven life areas — mind and emotions, body and nervous system, money, relationships, ancestry, career and spirit — plus a seven-chakra body map, that instantly generates a personalised Prescription of Soul Journey.",
   inLanguage: "en-IN",
   isAccessibleForFree: true,
   offers: {

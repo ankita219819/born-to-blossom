@@ -138,7 +138,7 @@ function ConnectDetails({ className }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer id="contact" className="relative border-t border-[#EFE5DA] bg-[#F8F3ED]">
+    <footer id="contact" className="relative overflow-x-clip border-t border-[#EFE5DA] bg-[#F8F3ED]">
       <div className="hidden md:contents">
         <FooterDecoration />
         <SacredMark className="pointer-events-none absolute -right-14 bottom-16 z-0 hidden w-48 opacity-20 xl:block" />

@@ -1,883 +1,517 @@
 /**
- * Lasoma Soul Family Assessment — source data.
+ * Lasoma Soul Family Assessment — content & configuration.
  *
- * 25 questions across 5 dimensions, each option tagged with the Soul Profiles
- * it feeds and the modalities it maps to (per the Born to Blossom backend
- * prescription architecture). Pure data — no logic, no React.
+ * Domains, chakras, soul profiles, timeline bands, service map and safety
+ * resources, transcribed from the Born to Blossom back-end document. The
+ * question bank itself lives in `assessment-questions.ts`. Pure data — no
+ * logic, no React.
  */
 
-export type DimensionId = "SOM" | "EMO" | "MIND" | "ANC" | "SOUL";
+import type { ChakraId, DomainId, FlagId } from "@/lib/assessment-questions";
 
-export type ProfileId =
-  | "p1" | "p2" | "p3" | "p4" | "p5"
-  | "p6" | "p7" | "p8" | "p9" | "p10";
+export type { AssessmentOption, AssessmentQuestion, ChakraId, DomainId, FlagId, OptionId } from "@/lib/assessment-questions";
+export { questions } from "@/lib/assessment-questions";
 
-export type ModalityKey =
-  | "reiki-healing"
-  | "quantum-belief-reprogramming"
-  | "nlp"
-  | "family-constellation-therapy"
-  | "somatic-healing"
-  | "sound-healing"
-  | "bach-flower-therapy"
-  | "Humkaara"
-  | "hleem"
-  | "access-bars"
-  | "lama-fera-healing"
-  | "eft"
-  | "generational-ancestral-trauma-healing"
-  | "womb-healing"
-  | "shamanic-healing"
-  | "business-constellation"
-  | "soul-contract-reading"
-  | "restore"
-  | "corporate-wellness"
-  | "corporate-retreat-design";
+export type Band = "low" | "moderate" | "high";
 
-/** [profile, weight] — the first tag on an option is its primary vector. */
-export type ProfileWeight = [ProfileId, number];
+/* ── Bands ───────────────────────────────────────────────────────────── */
 
-export type OptionId = "A" | "B" | "C" | "D" | "E";
-
-export type AssessmentOption = {
-  id: OptionId;
-  text: string;
-  profiles: ProfileWeight[];
-  modalities: ModalityKey[];
+export const bandMeta: Record<Band, { label: string; color: string; soft: string; text: string }> = {
+  low: { label: "Low", color: "#7FA98B", soft: "#E8F2EA", text: "#365A43" },
+  moderate: { label: "Moderate", color: "#C69C6D", soft: "#F7EBD9", text: "#8A6234" },
+  high: { label: "High", color: "#C79072", soft: "#FBE9E1", text: "#A8553B" }
 };
 
-export type AssessmentQuestion = {
-  id: number;
-  dimension: DimensionId;
-  prompt: string;
-  options: AssessmentOption[];
-};
+/** Domain bands by percentage (spec §6). */
+export function bandForPercent(percent: number): Band {
+  if (percent <= 33) return "low";
+  if (percent <= 66) return "moderate";
+  return "high";
+}
 
-export type AssessmentDimension = {
-  id: DimensionId;
-  numeral: string;
-  title: string;
-  shortTitle: string;
-  intro: string;
-  questionIds: number[];
-};
+/** Chakra bands by raw 0–4 points (spec §5.4). */
+export function bandForChakraPoints(points: number): Band {
+  if (points <= 1) return "low";
+  if (points <= 3) return "moderate";
+  return "high";
+}
 
-export type Modality = {
-  key: ModalityKey;
+/* ── Chakras ─────────────────────────────────────────────────────────── */
+
+export type Chakra = {
+  id: ChakraId;
   name: string;
-  category: string;
-  indication: string;
-  mechanism: string;
-  dosage: string;
-  format: string;
+  /** Short axis label for charts. */
+  short: string;
+  sanskrit: string;
+  theme: string;
+  organs: string;
+  /** Question number (1-based) that scores this chakra. */
+  questionId: number;
 };
+
+export const chakras: Chakra[] = [
+  {
+    id: "root",
+    name: "Root Chakra",
+    short: "Root",
+    sanskrit: "Muladhara",
+    theme: "Safety, security, belonging, survival",
+    organs: "Adrenal glands, spine base, legs, feet, immune system",
+    questionId: 31
+  },
+  {
+    id: "sacral",
+    name: "Sacral Chakra",
+    short: "Sacral",
+    sanskrit: "Svadhisthana",
+    theme: "Creativity, pleasure, intimacy, emotional flow",
+    organs: "Reproductive organs, bladder, kidneys, hips, lower back",
+    questionId: 32
+  },
+  {
+    id: "solar",
+    name: "Solar Plexus Chakra",
+    short: "Solar Plexus",
+    sanskrit: "Manipura",
+    theme: "Personal power, confidence, will, identity",
+    organs: "Stomach, liver, pancreas, gallbladder, digestive system",
+    questionId: 33
+  },
+  {
+    id: "heart",
+    name: "Heart Chakra",
+    short: "Heart",
+    sanskrit: "Anahata",
+    theme: "Love, grief, compassion, connection, felt sense of safety with others",
+    organs: "Heart, lungs, thymus, the vagus nerve and “social engagement” system",
+    questionId: 34
+  },
+  {
+    id: "throat",
+    name: "Throat Chakra",
+    short: "Throat",
+    sanskrit: "Vishuddha",
+    theme: "Truth, self-expression, boundaries, what goes unsaid",
+    organs: "Throat, thyroid, mouth, jaw, neck",
+    questionId: 35
+  },
+  {
+    id: "thirdeye",
+    name: "Third Eye Chakra",
+    short: "Third Eye",
+    sanskrit: "Ajna",
+    theme: "Intuition, clarity, perception, mental patterns",
+    organs: "Eyes, brain, pituitary gland, sinuses",
+    questionId: 36
+  },
+  {
+    id: "crown",
+    name: "Crown Chakra",
+    short: "Crown",
+    sanskrit: "Sahasrara",
+    theme: "Spiritual connection, purpose, unity, meaning",
+    organs: "Pineal gland, upper brain, nervous system as a whole",
+    questionId: 37
+  }
+];
+
+export const chakraById = Object.fromEntries(chakras.map((chakra) => [chakra.id, chakra])) as Record<
+  ChakraId,
+  Chakra
+>;
+
+/* ── Domains ─────────────────────────────────────────────────────────── */
+
+export type Domain = {
+  id: DomainId;
+  emoji: string;
+  name: string;
+  /** Two-line-friendly label for chart axes. */
+  short: string;
+  blurb: string;
+  /** Chakra this domain is anchored to (spec §5.2). */
+  chakra: ChakraId;
+  breath: string;
+  /** First-letter-lowercase phrase for letter copy. */
+  phrase: string;
+};
+
+export const domains: Domain[] = [
+  {
+    id: "mind",
+    emoji: "🧠",
+    name: "Mind & Emotions",
+    short: "Mind",
+    blurb: "How your thoughts and feelings move through you day to day.",
+    chakra: "thirdeye",
+    breath: "Notice the space between your eyebrows and the back of your head.",
+    phrase: "mind and emotions"
+  },
+  {
+    id: "body",
+    emoji: "🌿",
+    name: "Body & Nervous System",
+    short: "Body",
+    blurb: "How safe, rested and regulated your body feels.",
+    chakra: "heart",
+    breath: "Notice your chest and the quality of your breath right now.",
+    phrase: "body and nervous system"
+  },
+  {
+    id: "money",
+    emoji: "🌾",
+    name: "Money & Abundance",
+    short: "Money",
+    blurb: "Your inherited beliefs and everyday feelings around money.",
+    chakra: "root",
+    breath: "Notice your legs, your feet, how grounded you feel in your seat.",
+    phrase: "money and abundance"
+  },
+  {
+    id: "relationships",
+    emoji: "🌸",
+    name: "Love & Relationships",
+    short: "Love",
+    blurb: "Your patterns of attachment, boundaries, and closeness.",
+    chakra: "sacral",
+    breath: "Notice your lower belly and hips.",
+    phrase: "love and relationships"
+  },
+  {
+    id: "ancestral",
+    emoji: "🌳",
+    name: "Ancestral & Family Roots",
+    short: "Ancestral",
+    blurb: "What may have been passed down to you, not created by you.",
+    chakra: "throat",
+    breath: "Notice your throat and jaw — are they tight, or relaxed?",
+    phrase: "ancestral and family roots"
+  },
+  {
+    id: "career",
+    emoji: "🌻",
+    name: "Career & Self-Worth",
+    short: "Career",
+    blurb: "How you value yourself, and how you let the world value you.",
+    chakra: "solar",
+    breath: "Notice your stomach, just below your ribs.",
+    phrase: "career and self-worth"
+  },
+  {
+    id: "spirit",
+    emoji: "✨",
+    name: "Spiritual Connection & Intuition",
+    short: "Spirit",
+    blurb: "Your sense of inner guidance and connection to something larger.",
+    chakra: "crown",
+    breath: "Notice the crown of your head.",
+    phrase: "spiritual connection and intuition"
+  }
+];
+
+export const domainById = Object.fromEntries(domains.map((domain) => [domain.id, domain])) as Record<
+  DomainId,
+  Domain
+>;
+
+/** Tie-break priority when two domains share the top score (spec §7). */
+export const sosPriority: DomainId[] = [
+  "body",
+  "relationships",
+  "career",
+  "mind",
+  "money",
+  "ancestral",
+  "spirit"
+];
+
+/** Body line used in the letter, keyed by the S.O.S. domain's paired chakra. */
+export const bodyLines: Record<ChakraId, string> = {
+  root:
+    "This often lives in the body too — many people carrying this pattern feel it in their legs, feet or lower back, as a sense of shaky ground, the seat of the Root Chakra, the energy centre connected to safety, security and belonging.",
+  sacral:
+    "This often lives in the body too — many people carrying this pattern feel it in their hips or lower belly, the seat of the Sacral Chakra, the energy centre connected to intimacy and emotional flow.",
+  solar:
+    "This often lives in the body too — many people carrying this pattern feel it as a tightening in the stomach, just below the ribs, or in digestion, the seat of the Solar Plexus Chakra, the energy centre connected to personal power and confidence.",
+  heart:
+    "This often lives in the body too — many people carrying this pattern feel it in the chest, in the lungs, or in how the breath moves, the seat of the Heart Chakra, the energy centre connected to love, grief and feeling safe with others.",
+  throat:
+    "This often lives in the body too — many people carrying this pattern feel it in the throat, jaw or neck, as words that stay stuck, the seat of the Throat Chakra, the energy centre connected to truth and what has gone unsaid.",
+  thirdeye:
+    "This often lives in the body too — many people carrying this pattern feel it behind the eyes, in the forehead, head or sinuses, the seat of the Third Eye Chakra, the energy centre connected to clarity and the patterns of the mind.",
+  crown:
+    "This often lives in the body too — many people carrying this pattern feel it at the crown of the head, or in the nervous system as a whole, the seat of the Crown Chakra, the energy centre connected to meaning and spiritual connection."
+};
+
+/* ── Quiz sections (drives the step sequence in the popup) ───────────── */
+
+export type QuizSection = {
+  id: string;
+  emoji: string;
+  title: string;
+  blurb: string;
+  /** Question ids (1-based) in this section. */
+  questionIds: number[];
+  /** "Pause for a breath" interstitial shown after the section. */
+  breath: string;
+};
+
+const breathNote = "No need to change anything — just notice.";
+
+export const quizSections: QuizSection[] = [
+  {
+    id: "start",
+    emoji: "🪷",
+    title: "A Starting Reflection",
+    blurb: "These first two questions help us understand your natural starting point — they won't be scored.",
+    questionIds: [1, 2],
+    breath: ""
+  },
+  ...domains.map((domain, index) => ({
+    id: domain.id,
+    emoji: domain.emoji,
+    title: domain.name,
+    blurb: domain.blurb,
+    questionIds: [3 + index * 4, 4 + index * 4, 5 + index * 4, 6 + index * 4],
+    breath: `Pause for a breath. ${domain.breath} ${breathNote}`
+  })),
+  {
+    id: "chakra",
+    emoji: "🕉",
+    title: "Chakra & Body Wisdom",
+    blurb:
+      "These next seven questions ask you to sense into your body directly, rather than think your way to an answer.",
+    questionIds: [31, 32, 33, 34, 35, 36, 37],
+    breath:
+      "Take one longer breath. Notice your whole body at once, from your feet to the crown of your head, as one connected system carrying one connected story."
+  }
+];
+
+/* ── Timeline (spec §8) ──────────────────────────────────────────────── */
+
+export type TimelineBand = {
+  max: number;
+  label: string;
+  estimate: string;
+  note: string;
+};
+
+export const timelineBands: TimelineBand[] = [
+  {
+    max: 33,
+    label: "Light-Touch Phase",
+    estimate: "4–8 focused weeks",
+    note: "A short, focused block of practice tends to create a noticeable shift here."
+  },
+  {
+    max: 50,
+    label: "Steady Unfolding",
+    estimate: "3–6 months",
+    note: "Most people feel real, stable movement with about a season of consistent work."
+  },
+  {
+    max: 70,
+    label: "Deep Pattern Work",
+    estimate: "6–12 months",
+    note: "These patterns tend to run deeper or further back, so they benefit from sustained, layered support."
+  },
+  {
+    max: 100,
+    label: "Root-Level Rewiring",
+    estimate: "12+ months",
+    note: "This is tender, foundational work. It is best paced gently, and — where it feels right — supported alongside qualified professional care."
+  }
+];
+
+/* ── Soul profiles (spec §9) ─────────────────────────────────────────── */
 
 export type SoulProfile = {
-  id: ProfileId;
-  index: number;
-  title: string;
+  id: DomainId | "balanced";
+  name: string;
   essence: string;
-  criteria: string;
-  manifestation: string[];
-  rootMechanism: string;
-  modalities: ModalityKey[];
-  dailyTools: string[];
-  arc: { phase: string; focus: string }[];
-  mantra: string;
+  strength: string;
 };
 
-/* ── Dimensions ─────────────────────────────────────────────────────── */
-
-export const dimensions: AssessmentDimension[] = [
-  {
-    id: "SOM",
-    numeral: "I",
-    title: "Physical, Somatic & Nervous System Regulation",
-    shortTitle: "Body & Nervous System",
-    intro:
-      "Exploring physical body wisdom, stored tissue tension, nervous system reactivity, and vital life-force.",
-    questionIds: [1, 2, 3, 4, 5]
+export const soulProfiles: Record<DomainId | "balanced", SoulProfile> = {
+  mind: {
+    id: "mind",
+    name: "The Overthinking Heart",
+    essence: "A rich inner world that never quite gets to rest.",
+    strength: "Deep self-awareness and emotional intelligence."
   },
-  {
-    id: "EMO",
-    numeral: "II",
-    title: "Emotional Processing, Heart Healing & Relationships",
-    shortTitle: "Heart & Relationships",
-    intro:
-      "Evaluating emotional processing, heart-center blockages, attachment templates, and relational dynamics.",
-    questionIds: [6, 7, 8, 9, 10]
+  body: {
+    id: "body",
+    name: "The Silent Carrier",
+    essence: "A body that has learned to hold what words never said.",
+    strength: "A strong, resilient nervous system, once it is shown how to release."
   },
-  {
-    id: "MIND",
-    numeral: "III",
-    title: "Subconscious Mind, Abundance & Identity Blueprint",
-    shortTitle: "Mind & Abundance",
-    intro:
-      "Uncovering subconscious core belief structures, financial glass ceilings, self-worth, and visibility blocks.",
-    questionIds: [11, 12, 13, 14, 15]
+  money: {
+    id: "money",
+    name: "The Scarcity Survivor",
+    essence: "A brilliant survival instinct around money that is ready to become trust instead.",
+    strength: "Resourcefulness and the ability to make things work with very little."
   },
-  {
-    id: "ANC",
-    numeral: "IV",
-    title: "Ancestral Field, Lineage & Systemic Karma",
-    shortTitle: "Ancestral Lineage",
-    intro:
-      "Illuminating inherited family fates, transgenerational bloodline patterns, and systemic entanglements.",
-    questionIds: [16, 17, 18, 19, 20]
+  relationships: {
+    id: "relationships",
+    name: "The Loyal Over-Giver",
+    essence: "A heart that loves fully, sometimes at its own expense.",
+    strength: "Deep loyalty and capacity for connection."
   },
-  {
-    id: "SOUL",
-    numeral: "V",
-    title: "Sacred Feminine, Soul Contract & Life Purpose Alignment",
-    shortTitle: "Soul & Purpose",
-    intro:
-      "Exploring second-chakra energy, womb space wisdom, intuitive gifts, soul agreements, and dharmic calling.",
-    questionIds: [21, 22, 23, 24, 25]
+  ancestral: {
+    id: "ancestral",
+    name: "The Family Torchbearer",
+    essence: "Someone quietly carrying more of the family's story than they realise.",
+    strength: "A natural sensitivity to patterns, and the potential to be the one who finally breaks the cycle."
+  },
+  career: {
+    id: "career",
+    name: "The Underestimated Achiever",
+    essence: "Someone who gives more than they let themselves receive back.",
+    strength: "Genuine competence and work ethic, ready to be matched with equal self-worth."
+  },
+  spirit: {
+    id: "spirit",
+    name: "The Disconnected Seeker",
+    essence: "Someone searching for a sense of guidance that is actually already close by.",
+    strength: "A natural pull toward meaning and growth."
+  },
+  balanced: {
+    id: "balanced",
+    name: "The Blossoming Soul",
+    essence: "Someone in a genuinely steady season, with room to deepen and refine.",
+    strength: "Self-awareness and groundedness across most areas of life."
   }
-];
-
-export const dimensionLabels: Record<DimensionId, string> = {
-  SOM: "Physical & Somatic",
-  EMO: "Emotional & Heart",
-  MIND: "Subconscious & Mind",
-  ANC: "Ancestral & Lineage",
-  SOUL: "Feminine, Soul & Purpose"
 };
 
-/* ── Modality registry (Section 3: dosage guide) ────────────────────── */
+/* ── Recommended services (spec §12) ─────────────────────────────────── */
 
-export const modalities: Record<ModalityKey, Modality> = {
-  "reiki-healing": {
-    key: "reiki-healing",
-    name: "Reiki Healing",
-    category: "Energy Healing",
-    indication: "Stress, fatigue, immune recovery, chakra blockages.",
-    mechanism: "Hand position channeling, chakra balancing, aura cleansing.",
-    dosage: "3–6 Sessions",
-    format: "In-person / Online"
+export type ServiceRec = {
+  name: string;
+  /** /services/<slug>; absent for self-paced suggestions. */
+  slug?: string;
+  why: string;
+};
+
+export const serviceCatalogue = {
+  eft: {
+    name: "EFT Tapping",
+    slug: "eft",
+    why: "A gentle tapping technique that calms the nervous system around a specific worry or emotional loop."
   },
-  "quantum-belief-reprogramming": {
-    key: "quantum-belief-reprogramming",
+  sound: {
+    name: "Sound Healing",
+    slug: "sound-healing",
+    why: "Sacred sound that settles the nervous system and softens what the mind keeps circling."
+  },
+  somatic: {
+    name: "Somatic Healing",
+    slug: "somatic-healing",
+    why: "Body-based healing that releases what talking alone cannot always reach."
+  },
+  qbr: {
     name: "Quantum Belief Reprogramming (QBR)",
-    category: "Mind & Belief",
-    indication: "Money blocks, imposter syndrome, core wounds.",
-    mechanism: "Theta-state subconscious access, belief extraction & installation.",
-    dosage: "4–6 Sessions",
-    format: "In-person / Online"
+    slug: "quantum-belief-reprogramming",
+    why: "Theta-level belief work that dissolves money blocks and unworthiness at the subconscious root."
+  },
+  bars: {
+    name: "Access Bars",
+    slug: "access-bars",
+    why: "A gentle, hands-on process that releases stored limiting thoughts, beliefs and emotions."
+  },
+  constellation: {
+    name: "Family Constellation Therapy",
+    slug: "family-constellation-therapy",
+    why: "Hellinger-based systemic work that reveals hidden family dynamics and restores love and belonging."
+  },
+  ancestral: {
+    name: "Generational & Ancestral Trauma Healing",
+    slug: "generational-ancestral-trauma-healing",
+    why: "Work aimed directly at patterns carried forward through the family line."
+  },
+  soulContract: {
+    name: "Soul Contract Reading",
+    slug: "soul-contract-reading",
+    why: "A reading that illuminates the agreements and lessons your soul came here to work with."
   },
   nlp: {
-    key: "nlp",
-    name: "Neuro-Linguistic Programming (NLP)",
-    category: "Mind & Belief",
-    indication: "Phobias, confidence, communication, self-sabotage.",
-    mechanism: "Timeline re-imprinting, submodality shifting, parts integration.",
-    dosage: "3–5 Sessions",
-    format: "In-person / Online"
+    name: "NLP (Neuro-Linguistic Programming)",
+    slug: "nlp",
+    why: "Reframes the internal language and beliefs that quietly shape confidence and self-worth."
   },
-  "family-constellation-therapy": {
-    key: "family-constellation-therapy",
-    name: "Family Constellation Therapy",
-    category: "Ancestral & Systemic",
-    indication: "Repeating family fates, relationship blocks, grief.",
-    mechanism: "Systemic field representation, restoring orders of love.",
-    dosage: "1–3 Sessions",
-    format: "In-person / Online"
+  shamanic: {
+    name: "Shamanic Healing",
+    slug: "shamanic-healing",
+    why: "Traditional soul-retrieval work for reconnecting to a felt sense of spirit and purpose."
   },
-  "somatic-healing": {
-    key: "somatic-healing",
-    name: "Somatic Healing",
-    category: "Holistic & Somatic",
-    indication: "Trauma in body, chronic tension, nervous system freeze.",
-    mechanism: "Titrated breathwork, felt-sense tracking, pendulation.",
-    dosage: "4–8 Sessions",
-    format: "In-person / Online"
-  },
-  "sound-healing": {
-    key: "sound-healing",
-    name: "Sound Healing",
-    category: "Energy Healing",
-    indication: "High stress, insomnia, overactive mind, dissonance.",
-    mechanism: "Tibetan singing bowls, crystal bowls, vocal toning.",
-    dosage: "1–4 Sessions",
-    format: "In-person / Online"
-  },
-  "bach-flower-therapy": {
-    key: "bach-flower-therapy",
-    name: "Bach Flower Therapy",
-    category: "Holistic & Natural",
-    indication: "Emotional imbalances, acute grief, panic, transition.",
-    mechanism: "Vibrational flower essences (38 remedies) custom blend.",
-    dosage: "3–6 Months",
-    format: "In-person / Online"
-  },
-  Humkaara: {
-    key: "Humkaara",
-    name: "Humkaara (Original Modality)",
-    category: "Energy Healing",
-    indication: "Root-level energetic blockages, heavy karmic weight.",
-    mechanism: "Sacred sound activation, cosmic vibration channeling.",
-    dosage: "2–4 Sessions",
-    format: "In-person / Online"
-  },
-  hleem: {
-    key: "hleem",
-    name: "Hleem Sacred Attunement (Original Modality)",
-    category: "Energy Healing",
-    indication: "Feminine wounding, womb disconnection, mother wound.",
-    mechanism: "Sacred feminine bija mantra attunement, womb blessing.",
-    dosage: "3–6 Sessions",
-    format: "In-person / Online"
-  },
-  "access-bars": {
-    key: "access-bars",
-    name: "Access Bars®",
-    category: "Mind & Belief",
-    indication: "Mental clutter, insomnia, overthinking, rigid control.",
-    mechanism: "Light touch on 32 brain points, electromagnetic release.",
-    dosage: "3–6 Sessions",
-    format: "In-person / Online"
-  },
-  "lama-fera-healing": {
-    key: "lama-fera-healing",
-    name: "Lama Fera Healing",
-    category: "Energy Healing",
-    indication: "Heavy negative energy, psychic drain, severe illness.",
-    mechanism: "Tibetan Buddhist light healing, Buddha compassion frequency.",
-    dosage: "3–5 Sessions",
-    format: "In-person / Online"
-  },
-  eft: {
-    key: "eft",
-    name: "EFT (Emotional Freedom Technique)",
-    category: "Mind & Belief",
-    indication: "Trauma triggers, acute phobias, public speaking anxiety.",
-    mechanism: "Acupressure meridian tapping, amygdala de-escalation.",
-    dosage: "2–4 Sessions",
-    format: "In-person / Online"
-  },
-  "generational-ancestral-trauma-healing": {
-    key: "generational-ancestral-trauma-healing",
-    name: "Generational Trauma Healing",
-    category: "Ancestral & Systemic",
-    indication: "Transgenerational pain, inherited family burdens.",
-    mechanism: "Ancestral mapping, bloodline clearing, reconciliation ritual.",
-    dosage: "4–6 Sessions",
-    format: "In-person / Online"
-  },
-  "womb-healing": {
-    key: "womb-healing",
-    name: "Womb Healing & Sacred Feminine Awakening",
-    category: "Ancestral & Systemic",
-    indication: "PCOS, fibroids, menstrual pain, reproductive grief.",
-    mechanism: "Second chakra restoration, Tantric womb meditation.",
-    dosage: "3–6 Sessions",
-    format: "In-person / Online"
-  },
-  "shamanic-healing": {
-    key: "shamanic-healing",
-    name: "Shamanic Healing (Soul Retrieval)",
-    category: "Ancestral & Systemic",
-    indication: "Soul loss after shock, loss of vitality, intrusions.",
-    mechanism: "Journeying, soul retrieval, power animal restoration.",
-    dosage: "1–3 Ceremonies",
-    format: "In-person / Online"
-  },
-  "business-constellation": {
-    key: "business-constellation",
-    name: "Business Constellation",
-    category: "Ancestral & Systemic",
-    indication: "Enterprise stagnation, partner conflicts, growth blocks.",
-    mechanism: "Organisational systemic field representation & alignment.",
-    dosage: "1–3 Sessions",
-    format: "In-person / Online"
-  },
-  "soul-contract-reading": {
-    key: "soul-contract-reading",
-    name: "Soul Contract Reading",
-    category: "Mind & Belief",
-    indication: "Feeling directionless, spiritual crisis, purpose confusion.",
-    mechanism: "Numerology, astrology & channelled pre-birth contract reading.",
-    dosage: "1 Deep Dive",
-    format: "In-person / Online"
+  reiki: {
+    name: "Reiki Healing",
+    slug: "reiki-healing",
+    why: "Gentle, hands-on energy work that restores balance and a felt sense of being supported."
   },
   restore: {
-    key: "restore",
-    name: "RESTORE — Signature Journey",
-    category: "Flagship Package",
-    indication: "Complex multi-layered issues (Body + Mind + Lineage + Soul).",
-    mechanism:
-      "Structured 8-week arc: Recalibrate, Excavate, Surrender, Transform, Open, Rebirth, Emerge.",
-    dosage: "8 Sessions",
-    format: "In-person / Online"
-  },
-  "corporate-wellness": {
-    key: "corporate-wellness",
-    name: "Corporate Wellness",
-    category: "Corporate Program",
-    indication: "Employee burnout, team misalignment, executive stress.",
-    mechanism: "Bilingual workshops, executive coaching, team sound baths.",
-    dosage: "Half-day / Monthly",
-    format: "In-person / Online"
-  },
-  "corporate-retreat-design": {
-    key: "corporate-retreat-design",
-    name: "Corporate Retreat Design",
-    category: "Corporate Program",
-    indication: "Leadership disconnect, strategic stagnation, team renewal.",
-    mechanism: "Immersive retreats combining constellations, sound & NLP.",
-    dosage: "1–3 Days",
-    format: "In-person / Online"
+    name: "RESTORE",
+    slug: "restore",
+    why: "Born to Blossom's flagship 8-session journey, weaving multiple modalities for deep, lasting root work."
   }
+} satisfies Record<string, ServiceRec>;
+
+export type ServiceKey = keyof typeof serviceCatalogue;
+
+/** Domain × band → recommendation. `null` service = self-paced suggestion. */
+export const serviceMap: Record<DomainId, Record<Band, ServiceKey | string>> = {
+  mind: { high: "eft", moderate: "sound", low: "Self-paced mindfulness content and community" },
+  body: { high: "somatic", moderate: "sound", low: "Self-paced body-awareness and breathwork practice" },
+  money: { high: "qbr", moderate: "bars", low: "Self-paced money-mindset journaling" },
+  relationships: { high: "constellation", moderate: "eft", low: "Self-paced boundaries practice" },
+  ancestral: { high: "ancestral", moderate: "soulContract", low: "Self-paced ancestral-awareness journaling" },
+  career: { high: "nlp", moderate: "bars", low: "Self-paced worth and visibility practice" },
+  spirit: { high: "shamanic", moderate: "reiki", low: "Guided meditation and stillness practice" }
 };
 
-/* ── Soul Profiles (Section 2: combination matrix) ──────────────────── */
+/* ── Safety protocol (spec §10) ──────────────────────────────────────── */
 
-export const soulProfiles: Record<ProfileId, SoulProfile> = {
-  p1: {
-    id: "p1",
-    index: 1,
-    title: "The Overburdened Vessel",
-    essence:
-      "Your body has been carrying what your mind could not finish processing. It is not weakness — it is an unfinished survival response still waiting to complete.",
-    criteria: "High density in Dimension I & somatic options.",
-    manifestation: ["Somatic tension", "Vagus nerve dysregulation", "Chronic fatigue"],
-    rootMechanism:
-      "Incomplete trauma charge locked in body tissues, dysregulated autonomic nervous system, exhausted life-force.",
-    modalities: ["somatic-healing", "reiki-healing", "sound-healing"],
-    dailyTools: [
-      "Bach Flower blend (Rescue Remedy, Elm)",
-      "Daily somatic shaking, 5 minutes",
-      "Vagus nerve reset breathwork on waking"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Recalibrate & nervous system regulation (somatic release & Reiki)" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Discharge stored tissue tension & restore vagal tone" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Sound healing for cellular coherence & deep rest" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Embodiment, capacity building & life-force restoration" }
-    ],
-    mantra: "My body is not the enemy. It is the witness that kept me alive."
-  },
-  p2: {
-    id: "p2",
-    index: 2,
-    title: "The Guarded Heart",
-    essence:
-      "Your heart built its walls for good reason. This work does not tear them down — it makes them unnecessary.",
-    criteria: "High density in Dimension II & emotional options.",
-    manifestation: ["Unprocessed grief", "Heart armor", "Attachment wounds"],
-    rootMechanism:
-      "Repressed heartbreak, fear of vulnerability, relational betrayal cycles, codependency templates.",
-    modalities: ["sound-healing", "bach-flower-therapy", "eft"],
-    dailyTools: [
-      "Daily heart-chakra toning",
-      "Rose quartz meditation",
-      "Boundary rituals before and after contact"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Safety, containment & grief acknowledgement" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "EFT release of betrayal charge & attachment triggers" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Heart-centered sound healing & armor softening" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Boundary embodiment & capacity to receive love" }
-    ],
-    mantra: "I can be open and safe at the same time."
-  },
-  p3: {
-    id: "p3",
-    index: 3,
-    title: "The Bound Mind",
-    essence:
-      "You are not lacking discipline. You are running a program installed before you were seven — and programs can be rewritten.",
-    criteria: "High density in Dimension III & mind options.",
-    manifestation: ["Subconscious core wounds", "Poverty consciousness", "Imposter syndrome"],
-    rootMechanism:
-      "Theta-state early childhood conditioning, subconscious upper-limit self-sabotage, overactive ego defense.",
-    modalities: ["quantum-belief-reprogramming", "nlp", "access-bars"],
-    dailyTools: [
-      "Subconscious neural re-imprinting audio before sleep",
-      "Custom QBR belief statements",
-      "Evening mental-clutter clearing"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Belief excavation & core wound mapping (QBR)" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Theta-state extraction & new belief installation" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "NLP timeline re-imprinting & parts integration" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Access Bars clearing, visibility & upper-limit expansion" }
-    ],
-    mantra: "The ceiling I keep hitting was never mine to begin with."
-  },
-  p4: {
-    id: "p4",
-    index: 4,
-    title: "The Lineage Carrier",
-    essence:
-      "Some of what you carry was never yours. Returning it to where it belongs is an act of love, not betrayal.",
-    criteria: "High density in Dimension IV & ancestral options.",
-    manifestation: ["Transgenerational trauma", "Inherited family fate", "Systemic entanglement"],
-    rootMechanism:
-      "Blind systemic loyalty to suffering ancestors, parentification, inherited financial and relational glass ceilings.",
-    modalities: ["family-constellation-therapy", "generational-ancestral-trauma-healing"],
-    dailyTools: [
-      "Ancestral honor rituals",
-      "Systemic re-ordering sentences",
-      "Monthly fire ceremony"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Genogram & systemic field mapping" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Excavate & lineage release (Family Constellation)" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Bloodline clearing & reconciliation ritual" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Restoring orders of love & claiming your own fate" }
-    ],
-    mantra: "I honor you, and I set down what was never mine to carry."
-  },
-  p5: {
-    id: "p5",
-    index: 5,
-    title: "The Suppressed Divine Feminine",
-    essence:
-      "Your creative centre has been holding the silence of generations of women. It is asking to speak again.",
-    criteria: "High density in Dimension V (Q21–Q22) & feminine options.",
-    manifestation: ["Womb space stagnation", "Reproductive grief / PCOS", "Creative disconnection"],
-    rootMechanism:
-      "Silenced maternal bloodline, over-masculine drive, second-chakra energetic blockage, intimacy wounding.",
-    modalities: ["womb-healing", "hleem"],
-    dailyTools: [
-      "Hleem seed mantra japa",
-      "Svadhisthana womb meditation",
-      "Yoni steam / sacred oil ritual"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Womb space assessment & second-chakra restoration" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Maternal line grief release & mother-wound work" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Hleem sacred attunement & bija mantra activation" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Creative rebirth, sensuality & feminine embodiment" }
-    ],
-    mantra: "I return the silence to my grandmothers, and I keep the song."
-  },
-  p6: {
-    id: "p6",
-    index: 6,
-    title: "The Scattered Essence",
-    essence:
-      "A part of you left during something you could not survive whole. Soul work is simply going back for it.",
-    criteria: "High density in Dimension V (Q23–Q24) & soul options.",
-    manifestation: ["Soul fragmentation", "Vitality depletion", "Karmic disconnection"],
-    rootMechanism:
-      "Soul loss following severe shock, unfulfilled pre-birth agreements, karmic repeating lessons.",
-    modalities: ["shamanic-healing", "soul-contract-reading", "lama-fera-healing"],
-    dailyTools: [
-      "Soul integration journaling",
-      "Grounding earth rituals",
-      "Power animal meditation"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Grounding, protection & vitality stabilisation" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Soul contract reading & karmic pattern mapping" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Shamanic journeying & soul retrieval ceremony" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Integration of returned parts & dharmic realignment" }
-    ],
-    mantra: "Every part of me is welcome to come home."
-  },
-  p7: {
-    id: "p7",
-    index: 7,
-    title: "The Empathic Absorber",
-    essence:
-      "Your sensitivity is a gift with no shield yet. We are not dulling it — we are giving it a door that closes.",
-    criteria: "High density across Dimensions I & V regarding aura boundaries.",
-    manifestation: ["Aura contamination", "Psychic drain", "Empathic overload"],
-    rootMechanism:
-      "Weak energetic biofield boundaries, lack of auric shielding, absorbing collective environmental stress.",
-    modalities: ["Humkaara", "reiki-healing", "lama-fera-healing"],
-    dailyTools: [
-      "Auric protection visualisation, morning & night",
-      "Black tourmaline / salt baths",
-      "Daily Humkaara chanting"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Aura cleansing & energetic cord release (Reiki)" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Lama Fera space clearing & heaviness removal" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Humkaara sacred sound activation & field sealing" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Daily shielding protocol & discernment training" }
-    ],
-    mantra: "I feel everything. I carry only what is mine."
-  },
-  p8: {
-    id: "p8",
-    index: 8,
-    title: "The Misaligned Enterprise / Leader",
-    essence:
-      "Your strategy is not the bottleneck. The system your business sits inside is out of order — and systems can be re-ordered.",
-    criteria: "High density in Q25 & business options in Dimension III.",
-    manifestation: ["Enterprise stagnation", "Co-founder conflict", "Revenue bottlenecks"],
-    rootMechanism:
-      "Systemic field entanglements in company hierarchy, founder projection, lack of organizational coherence.",
-    modalities: ["business-constellation", "nlp", "quantum-belief-reprogramming"],
-    dailyTools: [
-      "Business systemic field mapping",
-      "Logical levels leadership alignment",
-      "Team sound bath, monthly"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Organisational field mapping & bottleneck diagnosis" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Business Constellation — restoring order & belonging" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Executive NLP & QBR on visibility and worth" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Team coherence, sound baths & leadership integration" }
-    ],
-    mantra: "When the system is in order, the revenue follows."
-  },
-  p9: {
-    id: "p9",
-    index: 9,
-    title: "The Awakened Seeker & Healer",
-    essence:
-      "You are not only here to be healed. You are here to learn to hold the lamp for others — and that requires training.",
-    criteria: "High density in Q20, Q23, Q24 indicating spiritual calling.",
-    manifestation: ["Spiritual calling", "Healer path awakening", "Intuitive surge"],
-    rootMechanism:
-      "Soul readiness to step into professional healing arts, master ancient wisdom modalities, and serve humanity.",
-    modalities: ["reiki-healing", "Humkaara", "hleem", "restore"],
-    dailyTools: [
-      "Daily sadhana practice",
-      "Shakta tantric invocation",
-      "Mentorship supervision, fortnightly"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Personal clearing — the healer heals first" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Reiki / Humkaara practitioner attunement" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Hleem attunement & lineage gift activation" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "RESTORE facilitator training & supervised practice" }
-    ],
-    mantra: "I heal myself in the same motion that I learn to hold others."
-  },
-  p10: {
-    id: "p10",
-    index: 10,
-    title: "The Multi-Layered Blossom",
-    essence:
-      "Your pattern is not scattered — it is whole-system. Body, mind, lineage and soul are all speaking at once, and they need one sequenced arc, not five separate fixes.",
-    criteria: "Responses distributed broadly across three or more dimensions.",
-    manifestation: ["Whole human ecosystem overload", "Body + Mind + Lineage + Soul", "Layered, recurring patterns"],
-    rootMechanism:
-      "Complex, multi-dimensional challenges requiring a structured, sequential arc of deep soul transformation.",
-    modalities: ["restore", "bach-flower-therapy"],
-    dailyTools: [
-      "Complete RESTORE toolkit",
-      "Custom Bach Flower blend — 4 drops, 4x daily",
-      "Customised meditations + weekly integration"
-    ],
-    arc: [
-      { phase: "Phase 1 · Sessions 1–2", focus: "Recalibrate & nervous system regulation (somatic release & Reiki)" },
-      { phase: "Phase 2 · Sessions 3–4", focus: "Excavate & lineage release (Family Constellation & QBR)" },
-      { phase: "Phase 3 · Sessions 5–6", focus: "Transform & subconscious rewiring (NLP & Hleem / Humkaara)" },
-      { phase: "Phase 4 · Sessions 7–8", focus: "Rebirth, embodiment & soul integration (RESTORE emergence ceremony)" }
-    ],
-    mantra: "You were not broken into this world. You were born to blossom."
-  }
+export type FlagConfig = {
+  /** Domain the S.O.S. result is forced to when this flag fires. */
+  domain: DomainId;
+  /** Whether to show the gentle-care line and Extra Support panel. */
+  care: boolean;
 };
 
-/* ── The 25 questions ───────────────────────────────────────────────── */
+export const flagConfig: Record<FlagId, FlagConfig> = {
+  "somatic-history": { domain: "body", care: true },
+  underearning: { domain: "career", care: false },
+  "controlling-relationship": { domain: "relationships", care: true },
+  "workplace-mistreatment": { domain: "career", care: true }
+};
 
-export const questions: AssessmentQuestion[] = [
-  {
-    id: 1,
-    dimension: "SOM",
-    prompt: "How does stress, heavy emotion, or mental overload physically manifest in your body?",
-    options: [
-      { id: "A", text: "Persistent muscle tightness in neck, shoulders, jaw clenching, tension headaches, or gut holding patterns.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "B", text: "Profound chronic fatigue, waking up unrefreshed, and feeling perpetually drained of vital energy.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "C", text: "Sudden panic spikes, heart racing, shallow breathing, feeling hyper-vigilant, or startled easily.", profiles: [["p1", 2], ["p2", 1]], modalities: ["eft", "sound-healing"] },
-      { id: "D", text: "Brain fog, heavy head pressure, sensory overload, or feeling physically numb and detached from your body.", profiles: [["p3", 2], ["p1", 1]], modalities: ["access-bars"] },
-      { id: "E", text: "Recurring physical symptoms or health patterns that mirror health struggles experienced by family members.", profiles: [["p4", 2]], modalities: ["generational-ancestral-trauma-healing"] }
-    ]
-  },
-  {
-    id: 2,
-    dimension: "SOM",
-    prompt: "When faced with unexpected challenges or overwhelming situations, what is your nervous system's default reaction?",
-    options: [
-      { id: "A", text: "Hyper-activation: racing heart, restlessness, an urge to flee, pace around, or frantically fix things.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "B", text: "Freeze state: feeling paralyzed, unable to take action, shutting down physically, or craving deep sleep.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "C", text: "Emotional flooding: sudden surge of tears, lump in the throat, chest constriction, or heavy sadness.", profiles: [["p2", 2], ["p1", 1]], modalities: ["eft", "sound-healing"] },
-      { id: "D", text: "Defensive armoring: becoming physically tense, irritable, guarded, or bracing for a conflict.", profiles: [["p1", 2], ["p3", 1]], modalities: ["access-bars", "somatic-healing"] },
-      { id: "E", text: "Dissociation: spacing out, feeling out-of-body, or observing the situation as if watching from afar.", profiles: [["p6", 2], ["p1", 1]], modalities: ["shamanic-healing", "somatic-healing"] }
-    ]
-  },
-  {
-    id: 3,
-    dimension: "SOM",
-    prompt: "How would you describe your relationship with rest, relaxation, and your physical body?",
-    options: [
-      { id: "A", text: "I find it nearly impossible to sit still; guilt or anxiety arises whenever I try to relax or do nothing.", profiles: [["p1", 2], ["p3", 1]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "B", text: "My body feels like an exhausting weight to carry; I feel disconnected from physical pleasure and ease.", profiles: [["p1", 2], ["p5", 1]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "C", text: "I push through physical fatigue using willpower, caffeine, or drive until my body completely crashes.", profiles: [["p1", 2]], modalities: ["eft", "sound-healing"] },
-      { id: "D", text: "I suffer from sleep disruptions, vivid anxious dreams, frequent night wakings, or trouble falling asleep.", profiles: [["p3", 2], ["p1", 1]], modalities: ["access-bars", "sound-healing"] },
-      { id: "E", text: "I feel deeply intuitive and attuned to my body, but I easily absorb the physical pain and stress of others.", profiles: [["p7", 2]], modalities: ["Humkaara", "reiki-healing"] }
-    ]
-  },
-  {
-    id: 4,
-    dimension: "SOM",
-    prompt: "Throughout your typical day, which energy and vital life-force pattern do you experience?",
-    options: [
-      { id: "A", text: "Extreme energy crashes in the afternoon with intense brain fog and craving sugar or caffeine.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "B", text: "Adrenaline-fueled energy spikes followed by sudden bouts of severe physical and emotional exhaustion.", profiles: [["p1", 2]], modalities: ["somatic-healing", "reiki-healing"] },
-      { id: "C", text: "Constant low-grade lethargy; my energetic battery never charges beyond 30% capacity.", profiles: [["p1", 2], ["p6", 1]], modalities: ["eft", "sound-healing"] },
-      { id: "D", text: "Tension and restlessness that build through the day, making it difficult to wind down at night.", profiles: [["p3", 2], ["p1", 1]], modalities: ["access-bars"] },
-      { id: "E", text: "Unpredictable energy that fluctuates wildly depending on the environments or people I interact with.", profiles: [["p7", 2]], modalities: ["Humkaara", "lama-fera-healing"] }
-    ]
-  },
-  {
-    id: 5,
-    dimension: "SOM",
-    prompt: "What physical area of your body feels like it holds the most stored memory, tension, or stagnation?",
-    options: [
-      { id: "A", text: "Throat, neck, and jaw — holding back unsaid words, stifled tears, or suppressed self-expression.", profiles: [["p1", 2], ["p2", 1]], modalities: ["somatic-healing", "sound-healing"] },
-      { id: "B", text: "Heart, chest, and upper back — carrying old emotional grief, heartbreak, or protective energetic walls.", profiles: [["p2", 2], ["p1", 1]], modalities: ["sound-healing", "bach-flower-therapy"] },
-      { id: "C", text: "Solar plexus and upper stomach — holding chronic worry, control issues, fear of failure, or anxiety.", profiles: [["p3", 2], ["p1", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "D", text: "Lower abdomen, pelvic space, and hips — holding creative blocks, relational trauma, or feminine conditioning.", profiles: [["p5", 2], ["p1", 1]], modalities: ["womb-healing", "hleem"] },
-      { id: "E", text: "Lower back, spine, and feet — holding insecurity regarding financial survival, stability, and belonging.", profiles: [["p4", 2], ["p3", 1]], modalities: ["generational-ancestral-trauma-healing"] }
-    ]
-  },
-  {
-    id: 6,
-    dimension: "EMO",
-    prompt: "What emotional state or baseline mood feels most dominant in your current life chapter?",
-    options: [
-      { id: "A", text: "Unexplained sadness, underlying grief, or a quiet heavy sorrow beneath daily activities.", profiles: [["p2", 2]], modalities: ["bach-flower-therapy", "sound-healing"] },
-      { id: "B", text: "Persistent worry, fear of future catastrophes, dread, or waiting for 'the other shoe to drop.'", profiles: [["p2", 2], ["p3", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "C", text: "Subconscious anger, irritability, resentment, or feeling repeatedly underappreciated and unfulfilled.", profiles: [["p2", 2], ["p1", 1]], modalities: ["somatic-healing", "nlp"] },
-      { id: "D", text: "Emotional flatness or numbness — difficulty feeling genuine enthusiasm, deep joy, or passionate drive.", profiles: [["p2", 2], ["p6", 1]], modalities: ["family-constellation-therapy", "somatic-healing"] },
-      { id: "E", text: "A persistent sense of guilt or shame, feeling responsible for other people's happiness and emotional state.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 7,
-    dimension: "EMO",
-    prompt: "When emotional pain, disappointment, or conflict arises in personal relationships, how do you process it?",
-    options: [
-      { id: "A", text: "I internalize it completely, blaming myself and over-analyzing what I did wrong.", profiles: [["p2", 2], ["p3", 1]], modalities: ["bach-flower-therapy", "eft"] },
-      { id: "B", text: "I express it through intense emotional outbursts or tearful releases, feeling overwhelmed by the feeling.", profiles: [["p2", 2]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "C", text: "I withdraw emotionally, put up wall-like barriers, and isolate myself to protect against further hurt.", profiles: [["p2", 2], ["p1", 1]], modalities: ["somatic-healing", "nlp"] },
-      { id: "D", text: "I intellectualize the emotion immediately, analyzing it logically while disconnecting from the felt sense.", profiles: [["p2", 2], ["p3", 1]], modalities: ["family-constellation-therapy", "somatic-healing"] },
-      { id: "E", text: "I keep the peace at all costs, pleasing others and suppressing my own feelings to avoid conflict.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 8,
-    dimension: "EMO",
-    prompt: "Which pattern repeatedly surfaces in your intimate partnerships, close friendships, or family relationships?",
-    options: [
-      { id: "A", text: "Attracting people who are emotionally unavailable, distant, or who require me to 'fix' or save them.", profiles: [["p2", 2], ["p4", 1]], modalities: ["bach-flower-therapy", "family-constellation-therapy"] },
-      { id: "B", text: "Deep-seated fear of abandonment, leading to needy attachment or over-checking the relationship's stability.", profiles: [["p2", 2], ["p3", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "C", text: "Fear of engulfment or losing independence, causing me to pull away when intimacy deepens.", profiles: [["p2", 2], ["p5", 1]], modalities: ["somatic-healing", "nlp"] },
-      { id: "D", text: "Repeating the exact same communication breakdowns or marital arguments that my parents experienced.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy"] },
-      { id: "E", text: "Over-giving and poor boundaries: giving far more love, time, and support than I receive in return.", profiles: [["p2", 2], ["p7", 1]], modalities: ["family-constellation-therapy", "bach-flower-therapy"] }
-    ]
-  },
-  {
-    id: 9,
-    dimension: "EMO",
-    prompt: "How do you experience setting personal boundaries and honoring your authentic needs?",
-    options: [
-      { id: "A", text: "I feel immense guilt whenever I say 'no,' often saying 'yes' even when completely exhausted.", profiles: [["p2", 2], ["p7", 1]], modalities: ["bach-flower-therapy", "eft"] },
-      { id: "B", text: "My boundaries are extreme — either completely porous with no defense, or rigid brick walls.", profiles: [["p2", 2], ["p7", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "C", text: "I state boundaries clearly, but people cross them because I struggle to enforce consequences.", profiles: [["p2", 2], ["p3", 1]], modalities: ["nlp", "somatic-healing"] },
-      { id: "D", text: "I hide my true needs, fearing that expressing them will make me seem demanding or burdensome.", profiles: [["p2", 2], ["p4", 1]], modalities: ["family-constellation-therapy", "quantum-belief-reprogramming"] },
-      { id: "E", text: "I set boundaries well professionally, but struggle significantly with family and romantic partners.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 10,
-    dimension: "EMO",
-    prompt: "How open and safe does your heart feel when giving and receiving love and vulnerability?",
-    options: [
-      { id: "A", text: "I give love generously, but find it deeply uncomfortable to receive care, help, or compliments.", profiles: [["p2", 2], ["p5", 1]], modalities: ["bach-flower-therapy", "sound-healing"] },
-      { id: "B", text: "My heart feels guarded by protective walls due to past romantic betrayals or childhood heartbreak.", profiles: [["p2", 2]], modalities: ["eft", "sound-healing"] },
-      { id: "C", text: "I desire deep soul intimacy, but a subconscious voice warns me that vulnerability will lead to pain.", profiles: [["p2", 2], ["p3", 1]], modalities: ["somatic-healing", "nlp"] },
-      { id: "D", text: "I feel a profound loneliness, as if no one truly sees, understands, or knows the real me.", profiles: [["p2", 2], ["p6", 1]], modalities: ["family-constellation-therapy", "soul-contract-reading"] },
-      { id: "E", text: "I experience deep love and gratitude, but often worry about losing the people I love most.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy", "bach-flower-therapy"] }
-    ]
-  },
-  {
-    id: 11,
-    dimension: "MIND",
-    prompt: "When reflecting on money, wealth, and financial abundance, which internal program runs loudest?",
-    options: [
-      { id: "A", text: "Poverty consciousness: 'Money is scarce and hard to earn; I must hoard it because dry spells are inevitable.'", profiles: [["p3", 2], ["p4", 1]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "B", text: "Financial glass ceiling: 'I can earn comfortably, but large wealth is unsafe or not meant for me.'", profiles: [["p3", 2], ["p8", 1]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "C", text: "Money leaks: 'Whenever I accumulate savings, unexpected expenses drain my financial cushion.'", profiles: [["p3", 2]], modalities: ["access-bars", "quantum-belief-reprogramming"] },
-      { id: "D", text: "Guilt around wealth: 'If I become too successful, I will alienate my loved ones or be judged.'", profiles: [["p3", 2], ["p4", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "E", text: "Abundance struggle: 'I must work frantically and sacrifice my health and peace to earn security.'", profiles: [["p4", 2], ["p3", 1]], modalities: ["generational-ancestral-trauma-healing"] }
-    ]
-  },
-  {
-    id: 12,
-    dimension: "MIND",
-    prompt: "How does your internal dialogue treat you when you attempt new goals or step into visibility?",
-    options: [
-      { id: "A", text: "Imposter syndrome: 'Who do you think you are? You aren't qualified or good enough to step forward.'", profiles: [["p3", 2]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "B", text: "Perfectionism: 'If it isn't 100% flawless, it's a failure. I must re-do it until I feel safe from criticism.'", profiles: [["p3", 2]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "C", text: "Self-sabotage: I start projects with immense enthusiasm, but freeze, procrastinate, or quit near completion.", profiles: [["p3", 2], ["p8", 1]], modalities: ["access-bars", "nlp"] },
-      { id: "D", text: "Fear of judgment: 'People will criticize, envy, or expose me if I express my authentic voice publicly.'", profiles: [["p3", 2], ["p8", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "E", text: "Comparison: constantly feeling behind in life and measuring my progress against peers.", profiles: [["p3", 2], ["p4", 1]], modalities: ["generational-ancestral-trauma-healing", "nlp"] }
-    ]
-  },
-  {
-    id: 13,
-    dimension: "MIND",
-    prompt: "How do you experience mental focus, decision-making, and internal clarity day to day?",
-    options: [
-      { id: "A", text: "Non-stop mental chatter: racing thoughts, over-analyzing past conversations, endless 'what-if' scenarios.", profiles: [["p3", 2]], modalities: ["quantum-belief-reprogramming", "access-bars"] },
-      { id: "B", text: "Internal conflict: feeling pulled in two opposite directions — part of me wants growth, part wants safety.", profiles: [["p3", 2]], modalities: ["nlp", "quantum-belief-reprogramming"] },
-      { id: "C", text: "Chronic indecision: constantly seeking advice because I struggle to trust my own judgment.", profiles: [["p3", 2], ["p5", 1]], modalities: ["access-bars", "nlp"] },
-      { id: "D", text: "Mental fatigue: intellectually drained, scattered, unable to maintain sustained creative focus.", profiles: [["p3", 2], ["p1", 1]], modalities: ["eft", "access-bars"] },
-      { id: "E", text: "Rigid over-control: needing to micromanage every detail of life and work to prevent unexpected chaos.", profiles: [["p3", 2], ["p4", 1]], modalities: ["access-bars", "generational-ancestral-trauma-healing"] }
-    ]
-  },
-  {
-    id: 14,
-    dimension: "MIND",
-    prompt: "What core subconscious fear feels most prominent when you think about fully stepping into your power?",
-    options: [
-      { id: "A", text: "Fear of rejection or abandonment by family or community if I change and outgrow them.", profiles: [["p3", 2], ["p4", 1]], modalities: ["quantum-belief-reprogramming", "family-constellation-therapy"] },
-      { id: "B", text: "Fear of failure and public humiliation: what if I invest time and money and fail completely?", profiles: [["p3", 2], ["p8", 1]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "C", text: "Fear of success and responsibility: what if I succeed and cannot handle the demand and pressure?", profiles: [["p3", 2], ["p8", 1]], modalities: ["access-bars", "nlp"] },
-      { id: "D", text: "Fear of harm or envy: a deep instinctual feeling that standing out or being visible invites danger.", profiles: [["p3", 2], ["p4", 1]], modalities: ["eft", "generational-ancestral-trauma-healing"] },
-      { id: "E", text: "Fear of being seen as selfish: believing that prioritizing my fulfillment hurts those around me.", profiles: [["p4", 2], ["p3", 1]], modalities: ["family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 15,
-    dimension: "MIND",
-    prompt: "Which message did you absorb most strongly during your childhood environment before age seven?",
-    options: [
-      { id: "A", text: "'Life is a struggle and you have to work hard just to survive.'", profiles: [["p3", 2], ["p4", 1]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "B", text: "'Don't make a scene, keep quiet, and be a good child so everyone stays happy.'", profiles: [["p3", 2], ["p2", 1]], modalities: ["quantum-belief-reprogramming", "nlp"] },
-      { id: "C", text: "'Love and approval are earned through high achievements, perfection, and good grades.'", profiles: [["p3", 2], ["p8", 1]], modalities: ["access-bars", "quantum-belief-reprogramming"] },
-      { id: "D", text: "'The world is unsafe and people will take advantage of you if you let your guard down.'", profiles: [["p3", 2], ["p7", 1]], modalities: ["eft", "quantum-belief-reprogramming"] },
-      { id: "E", text: "'Our family is destined for hardship; people like us don't get lucky or wealthy.'", profiles: [["p4", 2], ["p3", 1]], modalities: ["generational-ancestral-trauma-healing", "family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 16,
-    dimension: "ANC",
-    prompt: "Looking across your extended family tree, which pattern repeatedly occurs?",
-    options: [
-      { id: "A", text: "Unspoken secrets, family feuds, excluded members, early sudden deaths, or severed relationships.", profiles: [["p4", 2]], modalities: ["family-constellation-therapy"] },
-      { id: "B", text: "Sudden financial loss, bankruptcy, lost property, forced migration, or material displacement.", profiles: [["p4", 2], ["p3", 1]], modalities: ["family-constellation-therapy"] },
-      { id: "C", text: "Repeating relational fates across generations — early widowhood, bitter divorces, single parenting.", profiles: [["p4", 2], ["p2", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "D", text: "Transgenerational health struggles, chronic illnesses, or addictions mirrored across relatives.", profiles: [["p4", 2], ["p1", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "E", text: "Maternal lineage suppression: mothers and grandmothers whose voices, talents, or choices were silenced.", profiles: [["p5", 2], ["p4", 1]], modalities: ["hleem", "womb-healing"] }
-    ]
-  },
-  {
-    id: 17,
-    dimension: "ANC",
-    prompt: "What emotional position or systemic role have you carried within your immediate family?",
-    options: [
-      { id: "A", text: "The Parentified Child: the emotional anchor, mediator, or caregiver for my own parents.", profiles: [["p4", 2]], modalities: ["family-constellation-therapy"] },
-      { id: "B", text: "The Black Sheep: an outsider who carries the unsaid truths and shadows of the family.", profiles: [["p4", 2], ["p9", 1]], modalities: ["family-constellation-therapy"] },
-      { id: "C", text: "The Sacrificial Peacekeeper: suppressing my goals to maintain harmony and protect the family.", profiles: [["p4", 2], ["p2", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "D", text: "The High Achiever: carrying pressure to validate the family's worth through my success and status.", profiles: [["p4", 2], ["p8", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "E", text: "The Invisible One: staying quiet, asking for nothing, taking up as little space as possible.", profiles: [["p4", 2], ["p5", 1]], modalities: ["shamanic-healing", "hleem"] }
-    ]
-  },
-  {
-    id: 18,
-    dimension: "ANC",
-    prompt: "How do you feel connected to your ancestral heritage, cultural roots, and family history?",
-    options: [
-      { id: "A", text: "An invisible heavy weight on my shoulders — an obligation to suffer as my ancestors did.", profiles: [["p4", 2]], modalities: ["family-constellation-therapy"] },
-      { id: "B", text: "Completely severed, disconnected, or alienated from my bloodline, roots, and family history.", profiles: [["p4", 2], ["p6", 1]], modalities: ["family-constellation-therapy"] },
-      { id: "C", text: "Deep love for my family, but unconscious guilt whenever I experience more joy or wealth than they had.", profiles: [["p4", 2], ["p3", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "D", text: "Burdened by unresolved ancestral grief, trauma, or cultural displacement not originating in my life.", profiles: [["p4", 2], ["p7", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "E", text: "A powerful spiritual calling to heal my bloodline and ensure this trauma ends with me.", profiles: [["p9", 2], ["p4", 1]], modalities: ["shamanic-healing", "hleem"] }
-    ]
-  },
-  {
-    id: 19,
-    dimension: "ANC",
-    prompt: "When you reflect on your parents' marriage and relationship dynamic, how does it impact your life today?",
-    options: [
-      { id: "A", text: "I repeat the exact same argument styles, emotional distance, or conflicts my parents had.", profiles: [["p4", 2], ["p2", 1]], modalities: ["family-constellation-therapy"] },
-      { id: "B", text: "I chose a life or partner that is the polar opposite, yet still feel governed by fear of their fate.", profiles: [["p4", 2]], modalities: ["family-constellation-therapy"] },
-      { id: "C", text: "I feel stuck in the middle, still trying to mediate, heal, or fix my parents' relationship.", profiles: [["p4", 2]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "D", text: "I harbor deep unexpressed anger or resentment toward one or both parents for childhood wounds.", profiles: [["p4", 2], ["p2", 1]], modalities: ["generational-ancestral-trauma-healing", "eft"] },
-      { id: "E", text: "Deep compassion for my parents' struggles, but I struggle to disentangle my identity from their pain.", profiles: [["p4", 2], ["p6", 1]], modalities: ["shamanic-healing", "family-constellation-therapy"] }
-    ]
-  },
-  {
-    id: 20,
-    dimension: "ANC",
-    prompt: "What is your relationship with ancestral gifts, wisdom, and the positive legacy of your lineage?",
-    options: [
-      { id: "A", text: "I feel blocked from the gifts and strength of my ancestors because the trauma feels too loud.", profiles: [["p4", 2]], modalities: ["family-constellation-therapy", "generational-ancestral-trauma-healing"] },
-      { id: "B", text: "I recognize intuitive or healing abilities in myself that were suppressed or feared in past generations.", profiles: [["p9", 2], ["p4", 1]], modalities: ["Humkaara", "hleem"] },
-      { id: "C", text: "A strong duty to honor my ancestors, but I don't know how to do so without carrying their pain.", profiles: [["p4", 2], ["p9", 1]], modalities: ["generational-ancestral-trauma-healing"] },
-      { id: "D", text: "Completely unaware of my lineage's gifts, as though I am starting from zero in life.", profiles: [["p4", 2], ["p6", 1]], modalities: ["generational-ancestral-trauma-healing", "soul-contract-reading"] },
-      { id: "E", text: "I sense my soul specifically chose this bloodline to act as a light-bearer and ancestral healer.", profiles: [["p9", 2], ["p4", 1]], modalities: ["shamanic-healing", "restore"] }
-    ]
-  },
-  {
-    id: 21,
-    dimension: "SOUL",
-    prompt: "Regarding your relationship with feminine energy, intuition, and natural creative flow (for all genders):",
-    options: [
-      { id: "A", text: "I operate in rigid, over-working masculine drive, struggling to slow down, surrender, or receive.", profiles: [["p5", 2]], modalities: ["womb-healing", "hleem"] },
-      { id: "B", text: "I feel deeply disconnected from my creative spark, passion, sensuality, and capacity for pleasure.", profiles: [["p5", 2]], modalities: ["womb-healing", "hleem"] },
-      { id: "C", text: "I experience blockages in my lower abdomen, pelvic space, or second chakra (Svadhisthana).", profiles: [["p5", 2]], modalities: ["womb-healing", "hleem"] },
-      { id: "D", text: "I struggle to trust my intuitive gut feelings, relying heavily on logic and external validation.", profiles: [["p5", 2], ["p3", 1]], modalities: ["hleem", "quantum-belief-reprogramming"] },
-      { id: "E", text: "A powerful awakening of sacred feminine energy, but no grounded tools or sanctuary to integrate it.", profiles: [["p5", 2], ["p9", 1]], modalities: ["hleem", "Humkaara"] }
-    ]
-  },
-  {
-    id: 22,
-    dimension: "SOUL",
-    prompt: "For those who carry a physical womb space or work with womb energy, which experience resonates most?",
-    options: [
-      { id: "A", text: "Physical challenges: PCOS, endometriosis, fibroids, severe menstrual pain, or hormonal imbalance.", profiles: [["p5", 2]], modalities: ["womb-healing", "hleem"] },
-      { id: "B", text: "Reproductive or relational grief: miscarriage, abortion, birth trauma, or deep heartbreak scarring.", profiles: [["p5", 2], ["p2", 1]], modalities: ["womb-healing", "bach-flower-therapy"] },
-      { id: "C", text: "Sensuality and intimacy wounds: difficulty feeling safe, open, and fully present during intimacy.", profiles: [["p5", 2], ["p1", 1]], modalities: ["womb-healing", "somatic-healing"] },
-      { id: "D", text: "Creative stagnation: the 'womb of creation' inside me feels blocked from birthing new projects.", profiles: [["p5", 2], ["p8", 1]], modalities: ["womb-healing", "hleem"] },
-      { id: "E", text: "A longing to heal the maternal line and connect with divine feminine Goddess consciousness.", profiles: [["p5", 2], ["p9", 1]], modalities: ["hleem", "shamanic-healing"] }
-    ]
-  },
-  {
-    id: 23,
-    dimension: "SOUL",
-    prompt: "When you contemplate your higher life purpose, career alignment, and soul dharma, what arises?",
-    options: [
-      { id: "A", text: "A persistent feeling of being lost or misaligned — as if living someone else's life script.", profiles: [["p6", 2]], modalities: ["soul-contract-reading", "shamanic-healing"] },
-      { id: "B", text: "I know my purpose, but feel paralyzed by fear, financial insecurity, or lack of confidence.", profiles: [["p6", 2], ["p3", 1]], modalities: ["soul-contract-reading", "quantum-belief-reprogramming"] },
-      { id: "C", text: "Repeated setbacks or 'glass doors' whenever I get close to stepping into my spiritual calling.", profiles: [["p6", 2], ["p8", 1]], modalities: ["shamanic-healing", "lama-fera-healing"] },
-      { id: "D", text: "Profound soul fragmentation — as if a part of my vitality went missing after a past crisis.", profiles: [["p6", 2]], modalities: ["shamanic-healing", "lama-fera-healing"] },
-      { id: "E", text: "I feel called to serve, heal, or guide others, but must heal myself first and master the healing arts.", profiles: [["p9", 2], ["p6", 1]], modalities: ["restore", "reiki-healing"] }
-    ]
-  },
-  {
-    id: 24,
-    dimension: "SOUL",
-    prompt: "How do you experience energetic sensitivity, aura boundaries, and spiritual protection in daily life?",
-    options: [
-      { id: "A", text: "I am an 'energy sponge' — absorbing the moods, anxiety, and physical pain of everyone around me.", profiles: [["p7", 2]], modalities: ["Humkaara", "reiki-healing"] },
-      { id: "B", text: "I feel heavy, drained, or energetically contaminated after crowded places or being around negativity.", profiles: [["p7", 2]], modalities: ["Humkaara", "lama-fera-healing"] },
-      { id: "C", text: "Unexplained psychic drain, heavy dreams, or external negative energies affecting my space.", profiles: [["p7", 2], ["p6", 1]], modalities: ["lama-fera-healing", "Humkaara"] },
-      { id: "D", text: "Spiritually disconnected or dry, as though my prayers and meditations hit a glass ceiling.", profiles: [["p6", 2], ["p9", 1]], modalities: ["soul-contract-reading", "shamanic-healing"] },
-      { id: "E", text: "Intense spiritual awakening symptoms, heightened intuition, or energetic shifts that feel overwhelming.", profiles: [["p9", 2], ["p7", 1]], modalities: ["Humkaara", "hleem"] }
-    ]
-  },
-  {
-    id: 25,
-    dimension: "SOUL",
-    prompt: "If you lead a business, team, or professional enterprise, which systemic challenge currently manifests?",
-    options: [
-      { id: "A", text: "Revenue or growth bottlenecks: strategy is solid, but revenue hits an invisible wall despite effort.", profiles: [["p8", 2]], modalities: ["business-constellation"] },
-      { id: "B", text: "Leadership or partner friction: repeating conflicts with co-founders or team over authority and trust.", profiles: [["p8", 2], ["p4", 1]], modalities: ["business-constellation"] },
-      { id: "C", text: "Founder exhaustion: carrying the entire operational and emotional weight of the business until burnout.", profiles: [["p8", 2], ["p1", 1]], modalities: ["business-constellation", "somatic-healing"] },
-      { id: "D", text: "Visibility and brand blocks: hesitation to put my voice into the market, present, or claim authority.", profiles: [["p8", 2], ["p3", 1]], modalities: ["business-constellation", "nlp"] },
-      { id: "E", text: "I do not run a business, but experience these same systemic blockages in my job progression.", profiles: [["p8", 2], ["p3", 1]], modalities: ["business-constellation", "quantum-belief-reprogramming"] }
-    ]
-  }
-];
+export const gentleCareLine =
+  "And if any part of this has ever felt unsafe, please know extra support is always available to you.";
 
-export const totalQuestions = questions.length;
+export const helplines = [
+  { name: "KIRAN Mental Health Helpline", contact: "1800-599-0019", note: "Toll-free, 24/7", tel: "18005990019" },
+  { name: "iCall (TISS)", contact: "9152987821", note: "Counselling support", tel: "9152987821" },
+  { name: "Vandrevala Foundation", contact: "1860-2662-345 / 1800-2333-330", note: "24/7 support", tel: "18602662345" },
+  { name: "AASRA", contact: "+91-9820466726", note: "24/7 support", tel: "+919820466726" }
+] as const;
+
+export const disclaimer =
+  "Born to Blossom offers complementary healing and is not a replacement for medical or licensed mental-health care, and does not provide diagnosis or medical treatment.";
+
+/* ── Awareness style copy (unscored Q1) ──────────────────────────────── */
+
+export const awarenessLabels = {
+  body: "Body-led",
+  mind: "Mind-led",
+  doing: "Doing-led",
+  grounded: "Grounded",
+  variable: "Variable"
+} as const;
+
+export const awarenessLines = {
+  body: "You told us you notice heavy moments in your body first — so it may help to know that what you feel physically is often your system speaking, not something to push through.",
+  mind: "You told us you notice heavy moments in your thoughts first — so some of what feels like \"overthinking\" may really be your system asking to be heard.",
+  doing: "You told us you tend to get busy or numb when life feels heavy — a very human way of coping, and one worth meeting with gentleness rather than judgement.",
+  grounded: "You told us you tend to stay calm and grounded when life feels heavy — a real foundation to build on.",
+  variable: "You told us your pattern is different every time — which often means your system is adapting in many ways, and deserves a gentle map."
+} as const;

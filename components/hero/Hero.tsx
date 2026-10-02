@@ -113,7 +113,7 @@ export function Hero() {
             <Button href="#book-session" className="w-full sm:w-auto">
               Book a Healing Session <Leaf className="h-4 w-4" />
             </Button>
-            <Button href="/soul-assessment" variant="secondary" className="w-full sm:w-auto">
+            <Button href="/soul-assessment?start=1" variant="secondary" className="w-full sm:w-auto">
               Assessment <ClipboardList className="h-4 w-4" />
             </Button>
             <Button href="#services" variant="secondary" className="w-full sm:w-auto">
