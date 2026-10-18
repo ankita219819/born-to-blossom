@@ -8,16 +8,17 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { buildPageMetadata, founderPersonJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Founder’s Journey | Sonia Verma Bhattacharyya",
+  // Keep name out of the <title> so homepage can win "Sonia …" / brand name searches.
+  title: "Founder’s Journey",
   description:
-    "Meet Sonia Verma Bhattacharyya, founder of Born to Blossom Soul Awakening in Gurgaon — Humkaara, Hleem, Shakta Tantra, and a guide who walks beside you.",
+    "The story behind Born to Blossom Soul Awakening in Gurgaon — original modalities Humkaara and Hleem, Shakta Tantra roots, and a guide who walks beside you.",
   path: "/about/founder",
   keywords: [
-    "Sonia Verma Bhattacharyya",
     "Born to Blossom founder",
     "Humkaara",
     "Hleem",
-    "energy healer Gurgaon"
+    "energy healer Gurgaon",
+    "Soul Awakening journey"
   ]
 });
 
